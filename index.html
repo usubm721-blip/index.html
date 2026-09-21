@@ -1,922 +1,819 @@
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ClipForge - Advanced Video Splitter</title>
-    
-    <!-- Tailwind CSS -->
+    <title>ClipForge Pro - Advanced Video Splitter</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Montserrat:wght@500;700;900&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
-    
-    <!-- FontAwesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Montserrat:wght@700;900&family=Poppins:wght@600;800&display=swap" rel="stylesheet">
     
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
-                    fontFamily: { 
+                    colors: {
+                        dark: '#0B0F19',
+                        darker: '#06080D',
+                        primary: '#8B5CF6',
+                        secondary: '#EC4899',
+                        info: '#3B82F6'
+                    },
+                    fontFamily: {
                         sans: ['Inter', 'sans-serif'],
                         montserrat: ['Montserrat', 'sans-serif'],
-                        oswald: ['Oswald', 'sans-serif']
+                        poppins: ['Poppins', 'sans-serif'],
                     },
-                    colors: {
-                        navy: { 800: '#0f172a', 900: '#020617' },
-                        accent: { cyan: '#06b6d4', purple: '#8b5cf6', pink: '#ec4899' }
+                    animation: {
+                        'gradient-x': 'gradient-x 3s ease infinite',
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
                     }
                 }
             }
         }
     </script>
-    
     <style>
-        body { 
-            font-family: 'Inter', sans-serif; 
-            background-color: #020617; 
-            color: #f8fafc; 
-            overflow-x: hidden; 
+        body {
+            background-color: #06080D;
+            color: #ffffff;
             -webkit-tap-highlight-color: transparent;
         }
-        
         .glass-panel {
-            background: rgba(15, 23, 42, 0.7);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            background: rgba(17, 24, 39, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
         }
-
-        .modal-glass {
-            background: rgba(2, 6, 23, 0.95);
-            backdrop-filter: blur(25px);
-            -webkit-backdrop-filter: blur(25px);
-            border: 1px solid rgba(255, 255, 255, 0.15);
+        .processing-hidden {
+            position: absolute; left: -9999px; top: -9999px; width: 1px; height: 1px; opacity: 0.01; pointer-events: none;
         }
+        input[type="range"] { accent-color: #8B5CF6; }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #374151; border-radius: 4px; }
         
-        .text-gradient {
-            background: linear-gradient(135deg, #06b6d4, #8b5cf6, #ec4899);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-size: 200% auto;
-            animation: shine 4s linear infinite;
-        }
-
-        @keyframes shine { to { background-position: 200% center; } }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #06b6d4, #8b5cf6);
-            transition: all 0.3s ease;
-        }
-        .btn-primary:hover, .btn-primary:active {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px -5px rgba(139, 92, 246, 0.6);
-        }
-
-        /* Custom Range Slider */
-        input[type=range] {
-            -webkit-appearance: none;
-            width: 100%;
-            background: transparent;
-            height: 20px;
-        }
-        input[type=range]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            height: 18px; width: 18px;
-            border-radius: 50%;
-            background: #fff;
-            cursor: pointer;
-            margin-top: -7px;
-            box-shadow: 0 0 10px rgba(6, 182, 212, 0.8);
-        }
-        input[type=range]::-webkit-slider-runnable-track {
-            width: 100%; height: 4px;
-            background: rgba(255,255,255,0.2);
-            border-radius: 2px;
-        }
-
-        /* Status Dots */
-        .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
-        .status-pending { background: #475569; }
-        .status-processing { background: #06b6d4; box-shadow: 0 0 10px #06b6d4; animation: pulse 1s infinite; }
-        .status-done { background: #22c55e; box-shadow: 0 0 10px #22c55e; }
-
-        @keyframes pulse {
-            0% { transform: scale(0.95); opacity: 0.8; }
-            50% { transform: scale(1.2); opacity: 1; }
-            100% { transform: scale(0.95); opacity: 0.8; }
-        }
-
-        /* Toast Animation */
-        @keyframes slideUp {
-            from { transform: translateY(100%); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-        .animate-toast { animation: slideUp 0.3s ease forwards; }
+        .modal-open { display: flex !important; animation: fadeIn 0.2s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        
+        /* Custom UI for Gallery Cards */
+        .gallery-card { transition: all 0.2s ease; }
+        .gallery-card:active { transform: scale(0.97); }
     </style>
 </head>
-<body class="min-h-screen flex flex-col relative pb-safe">
+<body class="min-h-screen font-sans antialiased overflow-x-hidden pb-20">
 
-    <!-- Ambient Background -->
-    <div class="fixed inset-0 z-0 overflow-hidden pointer-events-none bg-[#020617]">
-        <div class="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-accent-purple/10 rounded-full blur-[100px]"></div>
-        <div class="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-accent-cyan/10 rounded-full blur-[100px]"></div>
-    </div>
-
-    <!-- Navigation Bar -->
-    <nav class="relative z-10 border-b border-white/10 bg-navy-900/80 backdrop-blur-xl sticky top-0">
-        <div class="max-w-7xl mx-auto px-4 h-14 md:h-16 flex items-center justify-between">
-            <div class="flex items-center gap-3 cursor-pointer" onclick="app.navigate('home')">
-                <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-accent-cyan to-accent-purple flex items-center justify-center shadow-lg">
-                    <i class="fa-solid fa-scissors text-white text-sm"></i>
-                </div>
-                <h1 class="text-xl font-bold tracking-tight">Clip<span class="text-gradient">Forge</span> <span class="text-[9px] bg-white/10 px-2 py-0.5 rounded text-white/80 ml-1 align-middle border border-white/10">PRO</span></h1>
+    <!-- Navbar -->
+    <nav class="fixed top-0 w-full z-50 glass-panel border-b border-white/10 px-4 py-3 flex justify-between items-center shadow-lg">
+        <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-primary to-info flex items-center justify-center shadow-lg">
+                <i class="fa-solid fa-scissors text-white text-sm"></i>
             </div>
-            <div class="flex gap-2">
-                <button onclick="app.openHistory()" class="w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition">
-                    <i class="fa-solid fa-folder-open text-gray-300"></i>
-                </button>
-                <button onclick="app.openSettings()" class="w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition">
-                    <i class="fa-solid fa-gear text-gray-300"></i>
-                </button>
-            </div>
+            <h1 class="text-xl font-bold tracking-tight">Clip<span class="text-primary">Forge</span> <span class="text-[10px] bg-white/10 px-2 py-0.5 rounded text-gray-300 ml-1 border border-white/5">PRO</span></h1>
+        </div>
+        <div class="flex gap-3">
+            <button onclick="toggleSettingsModal()" class="w-9 h-9 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors">
+                <i class="fa-solid fa-gear text-gray-400"></i>
+            </button>
         </div>
     </nav>
 
-    <main class="relative z-10 flex-1 w-full max-w-7xl mx-auto p-3 md:p-4 flex flex-col mb-10">
-        
-        <!-- ==================== VIEW: HOME ==================== -->
-        <div id="view-home" class="flex-1 flex flex-col items-center justify-center py-6 animate-fade-in">
-            <div class="text-center mb-8">
-                <h2 class="text-3xl md:text-5xl font-extrabold mb-4 tracking-tight leading-tight">Create Perfect <br/><span class="text-gradient">Shorts & Reels</span></h2>
-                <p class="text-gray-400 text-sm md:text-base max-w-md mx-auto">Smart offline splitter. Converts standard videos to 9:16 portrait format automatically.</p>
-            </div>
-
-            <!-- Upload Area -->
-            <label for="video-upload" class="glass-panel rounded-3xl p-10 flex flex-col items-center justify-center cursor-pointer hover:bg-white/[0.04] transition-all border-dashed border-2 border-accent-cyan/40 w-full max-w-xl group relative overflow-hidden shadow-2xl">
-                <div class="w-20 h-20 rounded-full bg-navy-800 border border-white/10 flex items-center justify-center mb-4 group-hover:scale-110 transition duration-500 shadow-xl z-10">
-                    <i class="fa-solid fa-cloud-arrow-up text-3xl text-gradient"></i>
-                </div>
-                <h3 class="text-xl font-bold mb-2 z-10">Select Video</h3>
-                <p class="text-gray-400 text-center text-xs z-10">MP4, WEBM, MOV<br><span class="text-[10px] text-green-400 font-medium mt-2 block"><i class="fa-solid fa-lock mr-1"></i> Processes 100% Offline</span></p>
-                <input type="file" id="video-upload" accept="video/mp4,video/webm,video/quicktime" class="hidden">
-            </label>
-        </div>
-
-        <!-- ==================== VIEW: EDITOR ==================== -->
-        <div id="view-editor" class="hidden flex-1 flex-col gap-4 animate-fade-in">
+    <!-- Global Settings Modal -->
+    <div id="settings-modal" class="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm hidden items-center justify-center px-4">
+        <div class="glass-panel w-full max-w-md rounded-2xl border border-white/10 shadow-2xl p-6 relative max-h-[90vh] overflow-y-auto">
+            <button onclick="toggleSettingsModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+            <h2 class="text-xl font-bold mb-6 flex items-center gap-2"><i class="fa-solid fa-sliders text-primary"></i> Global Settings</h2>
             
-            <div class="flex items-center justify-between bg-navy-900/60 p-2 md:p-3 rounded-xl border border-white/10">
-                <button onclick="app.navigate('home')" class="text-gray-300 hover:text-white flex items-center gap-2 transition px-3 py-1.5 bg-white/5 rounded-lg text-xs font-semibold">
-                    <i class="fa-solid fa-arrow-left"></i> Change Video
-                </button>
-                <div class="flex items-center gap-3">
-                    <span class="text-[10px] font-bold px-2 py-1 bg-gradient-to-r from-accent-cyan/20 to-accent-purple/20 rounded text-white border border-accent-cyan/30">STUDIO MODE</span>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
-                <!-- LEFT COLUMN -->
-                <div class="lg:col-span-7 flex flex-col gap-4">
-                    
-                    <!-- Preview Card -->
-                    <div class="glass-panel rounded-2xl p-3 flex flex-col">
-                        <div class="flex justify-between items-center mb-3">
-                            <h3 class="font-bold text-sm"><i class="fa-solid fa-display text-accent-cyan mr-2"></i>Live Preview</h3>
-                            <div class="flex gap-2">
-                                <span class="text-[10px] bg-navy-900 px-2 py-1 rounded border border-white/10 text-gray-300 font-mono" id="preview-time">00:00</span>
-                            </div>
-                        </div>
-                        
-                        <!-- Canvas Container -->
-                        <div class="relative w-full aspect-video md:aspect-[4/3] bg-black rounded-xl overflow-hidden border border-white/20 shadow-2xl flex items-center justify-center">
-                            <!-- Mobile optimization: CSS object-fit contain keeps ratios perfect -->
-                            <canvas id="preview-canvas" class="w-full h-full object-contain"></canvas>
-                            
-                            <button onclick="app.previewPlayPause()" class="absolute inset-0 w-full h-full flex items-center justify-center bg-black/20 group hover:bg-black/40 transition-colors">
-                                <div class="w-14 h-14 rounded-full bg-white/20 backdrop-blur flex items-center justify-center border border-white/40 transform hover:scale-110 transition shadow-xl">
-                                    <i id="preview-play-icon" class="fa-solid fa-play text-xl text-white ml-1"></i>
-                                </div>
-                            </button>
-                        </div>
-                        
-                        <!-- Visual Timeline -->
-                        <div class="mt-3 bg-navy-900 rounded-lg p-3 border border-white/10">
-                            <div class="flex justify-between text-[10px] text-gray-500 mb-1 font-mono font-bold">
-                                <span>00:00</span>
-                                <span id="timeline-end">00:00</span>
-                            </div>
-                            <div class="relative w-full h-4 bg-gray-800 rounded-md overflow-hidden cursor-pointer shadow-inner border border-black" id="timeline-bar" onclick="app.seekTimeline(event)">
-                                <div id="timeline-progress" class="absolute top-0 left-0 h-full bg-gradient-to-r from-accent-cyan to-accent-purple w-0 pointer-events-none opacity-50"></div>
-                                <div id="timeline-splits" class="absolute top-0 left-0 w-full h-full flex pointer-events-none"></div>
-                            </div>
-                            <p class="text-center text-[9px] text-gray-500 mt-2 uppercase tracking-widest font-bold">Visual Split Map</p>
-                        </div>
-                    </div>
-                    
-                    <!-- HTML5 Video Element (Hidden but active for decoding) -->
-                    <!-- opacity-0 ensures browser doesn't optimize it away -->
-                    <video id="source-video" class="absolute opacity-0 pointer-events-none w-[1px] h-[1px] z-[-1]" playsinline webkit-playsinline crossorigin="anonymous"></video>
-                    
-                    <!-- Luxury Template Editor -->
-                    <div class="glass-panel rounded-2xl p-4">
-                        <div class="flex items-center gap-2 mb-3 border-b border-white/10 pb-2">
-                            <i class="fa-solid fa-wand-magic-sparkles text-accent-purple"></i>
-                            <h3 class="font-bold text-sm">Smart Template & Branding</h3>
-                        </div>
-                        
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div class="space-y-3">
-                                <div>
-                                    <label class="text-xs text-gray-400 block mb-1 font-semibold">Series Title</label>
-                                    <input type="text" id="tpl-title" value="MY PREMIUM SERIES" oninput="app.updateTemplate()" class="w-full bg-navy-900 border border-white/10 rounded-lg px-3 py-2 text-sm font-bold text-white focus:border-accent-cyan outline-none transition">
-                                </div>
-                                <div class="grid grid-cols-2 gap-2">
-                                    <div>
-                                        <label class="text-xs text-gray-400 block mb-1 font-semibold">Font Style</label>
-                                        <select id="tpl-font" onchange="app.updateTemplate()" class="w-full bg-navy-900 border border-white/10 rounded-lg px-2 py-2 text-xs text-white outline-none">
-                                            <option value="Montserrat">Montserrat (Bold)</option>
-                                            <option value="Inter">Inter (Clean)</option>
-                                            <option value="Oswald">Oswald (Tall)</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label class="text-xs text-gray-400 block mb-1 font-semibold">Text Color</label>
-                                        <input type="color" id="tpl-color" value="#06b6d4" oninput="app.updateTemplate()" class="w-full h-[34px] bg-navy-900 border border-white/10 rounded-lg cursor-pointer">
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="space-y-3 md:border-l border-white/10 md:pl-4 pt-3 md:pt-0 border-t md:border-t-0">
-                                <div>
-                                    <label class="text-xs text-gray-400 block mb-1 font-semibold">Watermark / Logo</label>
-                                    <div class="flex gap-2">
-                                        <label class="flex-1 bg-navy-900 border border-white/10 rounded-lg px-2 py-1.5 text-xs text-center cursor-pointer flex items-center justify-center gap-2 hover:bg-white/5 transition">
-                                            <i class="fa-solid fa-image text-accent-cyan"></i> Upload
-                                            <input type="file" id="logo-upload" accept="image/png,image/jpeg,image/webp" class="hidden" onchange="app.handleLogo(event)">
-                                        </label>
-                                        <button onclick="app.clearLogo()" class="px-3 bg-red-500/10 text-red-400 rounded-lg border border-red-500/20 hover:bg-red-500/20 transition"><i class="fa-solid fa-trash"></i></button>
-                                    </div>
-                                </div>
-                                <div class="grid grid-cols-2 gap-2">
-                                    <div>
-                                        <label class="text-xs text-gray-400 block mb-1">Logo Pos</label>
-                                        <select id="tpl-logo-pos" onchange="app.updateTemplate()" class="w-full bg-navy-900 border border-white/10 rounded-lg px-2 py-1.5 text-[10px] text-white outline-none">
-                                            <option value="top-right">Top Right</option>
-                                            <option value="top-left">Top Left</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label class="text-xs text-gray-400 block mb-1">Opacity</label>
-                                        <input type="range" id="tpl-logo-op" min="0.1" max="1" step="0.1" value="0.9" oninput="app.updateTemplate()" class="w-full mt-1">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- RIGHT COLUMN -->
-                <div class="lg:col-span-5 flex flex-col gap-4">
-                    
-                    <!-- File Info -->
-                    <div class="glass-panel rounded-2xl p-3 flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl bg-navy-900 border border-white/20 flex items-center justify-center text-lg shadow-inner">
-                            <i class="fa-solid fa-film text-gray-300"></i>
-                        </div>
-                        <div class="overflow-hidden flex-1">
-                            <h4 id="info-filename" class="font-bold text-sm truncate w-full text-white">video.mp4</h4>
-                            <p class="text-[10px] text-gray-400 font-mono mt-0.5"><span id="info-duration">00:00</span> • <span id="info-res">1920x1080</span></p>
-                        </div>
-                    </div>
-
-                    <!-- Split Config -->
-                    <div class="glass-panel rounded-2xl p-4 border-l-4 border-l-accent-cyan">
-                        <h3 class="font-bold text-sm mb-3 flex items-center gap-2"><i class="fa-solid fa-scissors text-accent-cyan"></i> Split Configuration</h3>
-                        
-                        <div class="mb-4">
-                            <label class="text-[10px] font-bold text-gray-400 block mb-1 uppercase tracking-widest">Clip Duration</label>
-                            <div class="flex items-center bg-navy-900 rounded-xl border border-white/20 overflow-hidden focus-within:border-accent-cyan transition shadow-inner">
-                                <input type="number" id="cfg-duration" value="59" min="1" max="3600" oninput="app.calcParts()" class="w-full bg-transparent px-3 py-2 text-xl font-black text-white outline-none text-center">
-                                <span class="px-3 py-2 bg-white/5 text-gray-400 text-xs font-bold border-l border-white/10">SEC</span>
-                            </div>
-                            <div class="flex justify-between mt-2 gap-1">
-                                <button onclick="app.setDur(15)" class="flex-1 text-[10px] bg-white/5 py-1.5 rounded-lg text-accent-cyan font-bold hover:bg-white/10 transition">15s</button>
-                                <button onclick="app.setDur(30)" class="flex-1 text-[10px] bg-white/5 py-1.5 rounded-lg text-accent-cyan font-bold hover:bg-white/10 transition">30s</button>
-                                <button onclick="app.setDur(59)" class="flex-1 text-[10px] bg-white/5 py-1.5 rounded-lg text-accent-cyan font-bold hover:bg-white/10 transition">59s</button>
-                                <button onclick="app.setDur(120)" class="flex-1 text-[10px] bg-white/5 py-1.5 rounded-lg text-accent-cyan font-bold hover:bg-white/10 transition">2m</button>
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-2 mb-3">
-                            <div class="p-2 bg-navy-900/80 rounded-xl border border-white/10 text-center">
-                                <span class="text-gray-500 text-[9px] uppercase font-bold">Total Parts</span>
-                                <div id="info-parts" class="text-xl font-black text-white">0</div>
-                            </div>
-                            <div class="p-2 bg-navy-900/80 rounded-xl border border-white/10 text-center">
-                                <span class="text-gray-500 text-[9px] uppercase font-bold">Final Clip</span>
-                                <div id="info-final" class="text-lg font-bold text-white mt-0.5">0s</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Export Engine Settings -->
-                    <div class="glass-panel rounded-2xl p-4 flex-1 flex flex-col">
-                        <h3 class="font-bold text-sm mb-3 text-gray-300"><i class="fa-solid fa-sliders text-accent-purple mr-1"></i> Pro Export Settings</h3>
-                        
-                        <div class="space-y-3 mb-4 flex-1">
-                            <div class="flex items-center justify-between">
-                                <span class="text-xs font-semibold">Aspect Ratio (Format)</span>
-                                <select id="cfg-ratio" onchange="app.updateQuality()" class="bg-navy-900 border border-white/20 rounded-lg px-2 py-1.5 text-[10px] font-bold text-accent-cyan outline-none">
-                                    <option value="9:16">9:16 (Shorts/Reels)</option>
-                                    <option value="16:9">16:9 (YouTube)</option>
-                                    <option value="1:1">1:1 (Square)</option>
-                                </select>
-                            </div>
-                            <div class="flex items-center justify-between">
-                                <span class="text-xs font-semibold">Background Style</span>
-                                <select id="cfg-bg" onchange="app.updateTemplate()" class="bg-navy-900 border border-white/20 rounded-lg px-2 py-1.5 text-[10px] font-bold outline-none">
-                                    <option value="gradient" selected>Premium Gradient (Fast)</option>
-                                    <option value="solid">Solid Black (Fast)</option>
-                                    <option value="blur">Cinematic Blur (Slow)</option>
-                                </select>
-                            </div>
-                            <div class="flex items-center justify-between">
-                                <span class="text-xs font-semibold">Resolution (Quality)</span>
-                                <select id="cfg-qual" onchange="app.updateQuality()" class="bg-navy-900 border border-white/20 rounded-lg px-2 py-1.5 text-[10px] font-bold outline-none">
-                                    <option value="1080">1080p (High)</option>
-                                    <option value="720" selected>720p (Optimal)</option>
-                                    <option value="480">480p (Fast)</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <button onclick="app.startProcessing()" class="btn-primary w-full rounded-xl py-3.5 font-bold text-white shadow-xl text-sm tracking-wide mt-auto flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-bolt"></i> START PROCESSING
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ==================== VIEW: PROCESSING ==================== -->
-        <div id="view-processing" class="hidden flex-1 flex-col gap-4 animate-fade-in relative">
-            
-            <div class="flex items-center justify-between bg-navy-900/60 p-2 md:p-3 rounded-xl border border-white/10">
-                <h3 class="font-bold text-sm"><i class="fa-solid fa-microchip text-accent-cyan mr-2"></i> Super Engine</h3>
-                <div class="flex items-center gap-2 text-xs bg-white/5 px-2 py-1.5 rounded-lg font-bold border border-white/10">
-                    <span class="text-gray-400">Mode:</span>
-                    <select id="proc-mode" class="bg-transparent text-accent-cyan outline-none cursor-pointer">
-                        <option value="manual">Manual Save</option>
-                        <option value="auto">Auto Queue</option>
+            <div class="space-y-5">
+                <div>
+                    <label class="block text-sm font-semibold mb-2 text-gray-300">Export Aspect Ratio</label>
+                    <select id="global-ratio" class="w-full bg-darker border border-white/10 rounded-lg px-3 py-3 text-sm focus:outline-none focus:border-primary">
+                        <option value="9:16">9:16 (Shorts / Reels)</option>
+                        <option value="16:9">16:9 (Standard YouTube)</option>
                     </select>
                 </div>
-            </div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
-                <div class="lg:col-span-7 flex flex-col">
-                    <div class="glass-panel rounded-2xl p-4 h-full flex flex-col">
-                        <div class="flex justify-between items-center mb-3">
-                            <h3 class="font-bold text-sm">Status Board</h3>
-                            <span class="text-[10px] bg-navy-900 px-2 py-1 rounded text-gray-400 font-mono border border-white/10" id="proc-overall">0/0 Done</span>
-                        </div>
-                        <div class="flex-1 bg-navy-900/50 rounded-xl border border-white/5 p-3 overflow-y-auto max-h-[250px] shadow-inner">
-                            <div id="proc-grid" class="flex flex-wrap gap-2"></div>
-                        </div>
-                    </div>
+                <div>
+                    <label class="block text-sm font-semibold mb-2 text-gray-300">Output Resolution</label>
+                    <select id="global-res" class="w-full bg-darker border border-white/10 rounded-lg px-3 py-3 text-sm focus:outline-none focus:border-primary">
+                        <option value="1080">1080p (High Quality)</option>
+                        <option value="720">720p (Balanced)</option>
+                    </select>
                 </div>
-
-                <div class="lg:col-span-5 flex flex-col items-center justify-center glass-panel rounded-2xl p-6 border-t-4 border-t-accent-cyan relative overflow-hidden min-h-[400px]">
-                    <div class="text-center mb-4 z-10 w-full">
-                        <h2 class="text-3xl font-black mb-1">PART <span id="proc-part-num" class="text-gradient">01</span></h2>
-                        <p class="text-gray-400 text-xs font-semibold" id="proc-status">Encoding perfect frames...</p>
-                    </div>
-
-                    <!-- Progress Ring -->
-                    <div id="proc-ring-box" class="relative w-44 h-44 flex items-center justify-center mb-6 z-10">
-                        <svg class="w-full h-full transform -rotate-90 drop-shadow-2xl" viewBox="0 0 100 100">
-                            <circle cx="50" cy="50" r="46" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="6"></circle>
-                            <circle id="proc-ring" cx="50" cy="50" r="46" fill="none" stroke="url(#gradient)" stroke-width="6" stroke-dasharray="289" stroke-dashoffset="289" class="transition-all duration-200 ease-linear stroke-linecap-round"></circle>
-                            <defs>
-                                <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                                    <stop offset="0%" stop-color="#06b6d4" />
-                                    <stop offset="100%" stop-color="#8b5cf6" />
-                                </linearGradient>
-                            </defs>
-                        </svg>
-                        <div class="absolute inset-0 flex flex-col items-center justify-center bg-navy-900/40 rounded-full m-3 backdrop-blur-sm shadow-inner">
-                            <span id="proc-percent" class="text-3xl font-black text-white">0%</span>
-                        </div>
-                    </div>
-
-                    <!-- Result Video Player -->
-                    <div id="proc-result-box" class="hidden w-full max-w-[240px] rounded-xl overflow-hidden border border-white/20 shadow-2xl mb-6 z-10">
-                        <div class="bg-navy-800 text-center py-1.5 text-[9px] text-gray-400 font-bold tracking-widest border-b border-white/10">FINAL RENDER</div>
-                        <video id="proc-video" class="w-full h-auto max-h-[220px] bg-black object-contain" controls playsinline></video>
-                    </div>
-
-                    <div class="w-full z-10 mt-auto">
-                        <div id="proc-actions-active" class="w-full">
-                            <button onclick="app.abort()" class="w-full py-3 rounded-xl bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/30 text-sm font-bold transition flex items-center justify-center gap-2">
-                                <i class="fa-solid fa-stop"></i> Abort Process
-                            </button>
-                        </div>
-                        <div id="proc-actions-done" class="hidden w-full flex-col gap-2">
-                            <!-- Direct Download Trigger Button -->
-                            <button class="w-full py-3.5 rounded-xl bg-green-500 hover:bg-green-400 text-navy-900 font-black transition flex items-center justify-center gap-2 shadow-lg shadow-green-500/20 text-sm" onclick="app.downloadFile()">
-                                <i class="fa-solid fa-download"></i> SAVE TO GALLERY
-                            </button>
-                            <button onclick="app.nextPart()" class="btn-primary w-full py-3.5 rounded-xl font-bold text-white shadow-lg flex items-center justify-center gap-2 text-sm mt-1">
-                                PROCESS NEXT <i class="fa-solid fa-arrow-right"></i>
-                            </button>
-                        </div>
-                    </div>
+                <div>
+                    <label class="block text-sm font-semibold mb-2 text-gray-300">Frame Rate (FPS)</label>
+                    <select id="global-fps" class="w-full bg-darker border border-white/10 rounded-lg px-3 py-3 text-sm focus:outline-none focus:border-primary">
+                        <option value="90">90 FPS (Ultra Smooth)</option>
+                        <option value="60" selected>60 FPS (Standard Smooth)</option>
+                        <option value="30">30 FPS (Low End Device)</option>
+                    </select>
+                </div>
+                <!-- Advanced Auto Mode (Download + Next) -->
+                <div>
+                    <label class="block text-sm font-semibold mb-2 text-gray-300 text-emerald-400"><i class="fa-solid fa-bolt mr-1"></i> Automation Engine</label>
+                    <select id="global-autodownload" class="w-full bg-darker border border-emerald-500/30 rounded-lg px-3 py-3 text-sm focus:outline-none focus:border-emerald-500 transition-colors">
+                        <option value="manual">Manual (Tap to Save & Next)</option>
+                        <option value="auto">Auto (Save & Process Next)</option>
+                    </select>
+                    <p class="text-[10px] text-gray-500 mt-1">If set to Auto, parts will be saved automatically and the next part will start without touching the screen.</p>
                 </div>
             </div>
-        </div>
-    </main>
-
-    <!-- Modal: Settings -->
-    <div id="mod-settings" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm opacity-0 transition-opacity">
-        <div class="modal-glass rounded-2xl p-6 max-w-sm w-full transform scale-95 transition-transform" id="mod-settings-content">
-            <div class="flex justify-between items-center mb-4 pb-3 border-b border-white/10">
-                <h3 class="font-bold text-white"><i class="fa-solid fa-gear text-accent-cyan mr-2"></i> Global Settings</h3>
-                <button onclick="app.closeModal('mod-settings')" class="text-gray-400"><i class="fa-solid fa-xmark text-xl"></i></button>
-            </div>
-            <div class="space-y-4">
-                <div class="flex justify-between items-center">
-                    <span class="text-xs font-semibold text-gray-300">File Naming</span>
-                    <input type="text" id="set-name" value="{name}_Part_{part}" class="bg-navy-900 border border-white/10 rounded px-2 py-1 text-[10px] w-28 text-right outline-none text-white">
-                </div>
-                <div class="flex justify-between items-center">
-                    <span class="text-xs font-semibold text-gray-300">Mute Audio</span>
-                    <input type="checkbox" id="set-mute" class="w-4 h-4 accent-cyan-500 rounded cursor-pointer">
-                </div>
-            </div>
-            <button onclick="app.saveSet()" class="w-full mt-6 py-2.5 btn-primary rounded-lg text-sm font-bold shadow-lg">Save Changes</button>
+            
+            <button onclick="saveSettings()" class="w-full mt-8 bg-gradient-to-r from-primary to-info hover:opacity-90 text-white font-bold py-3 rounded-xl transition-all shadow-lg">
+                Save & Apply Defaults
+            </button>
         </div>
     </div>
 
-    <!-- Hidden Export Canvas -->
-    <!-- Opacity 0 keeps it active in browser rendering pipeline but invisible -->
-    <canvas id="render-canvas" class="absolute opacity-0 pointer-events-none w-[1px] h-[1px] z-[-1]"></canvas>
+    <!-- Main Container -->
+    <main class="pt-24 px-4 max-w-md mx-auto">
 
-    <!-- Toast UI -->
-    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex flex-col gap-2 pointer-events-none w-full max-w-xs items-center"></div>
+        <!-- SCREEN 1: Import -->
+        <div id="screen-import" class="space-y-6 animate-fade-in block">
+            <div class="text-center mt-2 mb-8">
+                <h2 class="text-3xl font-bold mb-2">Create Perfect<br><span class="text-transparent bg-clip-text bg-gradient-to-r from-primary via-secondary to-info" style="animation: pulse 3s infinite;">Clips & Shorts</span></h2>
+                <p class="text-gray-400 text-sm px-4">Smart offline splitter with professional animations, up to 90fps support & strict privacy.</p>
+            </div>
 
+            <label class="relative block w-full aspect-[4/3] rounded-3xl border-2 border-dashed border-primary/30 bg-primary/5 hover:bg-primary/10 transition-all cursor-pointer group overflow-hidden shadow-[0_0_20px_rgba(139,92,246,0.1)]">
+                <input type="file" id="video-input" accept="video/mp4,video/webm,video/mov,video/quicktime" class="hidden">
+                <div class="absolute inset-0 flex flex-col items-center justify-center">
+                    <div class="w-16 h-16 rounded-full bg-gradient-to-tr from-primary to-secondary flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-[0_0_30px_rgba(139,92,246,0.3)]">
+                        <i class="fa-solid fa-cloud-arrow-up text-2xl text-white"></i>
+                    </div>
+                    <h3 class="text-xl font-bold">Select Video</h3>
+                    <p class="text-sm text-gray-400 mt-1">MP4, WEBM, MOV</p>
+                    <div class="mt-4 flex items-center gap-2 text-xs text-emerald-400 bg-emerald-400/10 px-3 py-1.5 rounded-full border border-emerald-400/20">
+                        <i class="fa-solid fa-shield-halved"></i> Processes 100% Offline
+                    </div>
+                </div>
+            </label>
+        </div>
+
+        <!-- SCREEN 2: Editor / Studio -->
+        <div id="screen-editor" class="space-y-6 hidden">
+            <!-- Header -->
+            <div class="flex items-center justify-between">
+                <button onclick="resetApp()" class="text-gray-400 hover:text-white px-3 py-1.5 rounded-lg bg-white/5 text-sm transition-colors">
+                    <i class="fa-solid fa-arrow-left mr-2"></i> Change Video
+                </button>
+                <div class="text-xs font-semibold bg-info/20 text-info px-3 py-1.5 rounded-lg border border-info/20">
+                    <i class="fa-solid fa-wand-magic-sparkles mr-1"></i> STUDIO MODE
+                </div>
+            </div>
+
+            <!-- Settings Card -->
+            <div class="glass-panel rounded-2xl p-5 shadow-xl space-y-5 border-t border-primary/30 relative overflow-hidden">
+                <div class="absolute -right-10 -top-10 w-32 h-32 bg-primary/10 blur-3xl rounded-full pointer-events-none"></div>
+                
+                <!-- Duration -->
+                <div>
+                    <label class="block text-sm font-semibold mb-2 text-gray-300">Clip Duration (Seconds)</label>
+                    <div class="flex items-center gap-3">
+                        <input type="number" id="setting-duration" value="59" class="w-24 bg-darker border border-white/10 rounded-lg px-4 py-2.5 text-center font-mono text-lg focus:outline-none focus:border-primary transition-colors">
+                        <div class="flex-1 bg-darker rounded-lg p-2.5 border border-white/10 flex justify-between items-center">
+                            <span class="text-sm text-gray-400">Total Parts:</span>
+                            <span id="ui-total-parts" class="font-bold text-secondary text-lg">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Text Customization -->
+                <div>
+                    <label class="block text-sm font-semibold mb-2 text-gray-300">Series Title (Top Text)</label>
+                    <input type="text" id="setting-title" placeholder="e.g., MR BEAST EXCLUSIVE" value="MY PREMIUM SERIES" class="w-full bg-darker border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-primary transition-colors">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold mb-2 text-gray-300">Font Style</label>
+                        <select id="setting-font" class="w-full bg-darker border border-white/10 rounded-lg px-3 py-2.5 text-sm focus:outline-none">
+                            <option value="Montserrat">Montserrat (Bold)</option>
+                            <option value="Poppins">Poppins (Modern)</option>
+                            <option value="Inter">Inter (Clean)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold mb-2 text-gray-300">Background</label>
+                        <select id="setting-bg" class="w-full bg-darker border border-white/10 rounded-lg px-3 py-2.5 text-sm focus:outline-none">
+                            <option value="gradient">Deep Gradient</option>
+                            <option value="solid">Solid Black</option>
+                        </select>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Start Button -->
+            <button onclick="startProcessingEngine()" class="w-full bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-white font-bold py-4 rounded-xl shadow-[0_0_20px_rgba(139,92,246,0.3)] transition-all transform active:scale-[0.98] flex items-center justify-center gap-2 text-lg relative overflow-hidden">
+                <div class="absolute inset-0 bg-white/20 animate-pulse-slow"></div>
+                <i class="fa-solid fa-microchip relative z-10"></i> <span class="relative z-10">START RENDER ENGINE</span>
+            </button>
+        </div>
+
+        <!-- SCREEN 3: Processing & Export -->
+        <div id="screen-process" class="space-y-6 hidden">
+            
+            <div class="flex justify-between items-center mb-2">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-compact-disc text-primary animate-spin"></i>
+                    <h3 class="font-bold text-lg">Render Engine</h3>
+                </div>
+                <div class="text-sm bg-darker px-3 py-1 rounded-full border border-white/10">
+                    <span id="ui-current-part-text" class="text-info font-bold">Part 1</span> / <span id="ui-final-parts">0</span>
+                </div>
+            </div>
+
+            <!-- Status Grid -->
+            <div class="glass-panel rounded-xl p-4 shadow-xl">
+                <div class="flex justify-between text-xs text-gray-400 mb-3">
+                    <span>Task Queue</span>
+                    <span id="ui-queue-status">Processing...</span>
+                </div>
+                <div id="status-grid" class="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
+                    <!-- JS will populate status badges here -->
+                </div>
+            </div>
+
+            <!-- Progress Circle -->
+            <div class="glass-panel rounded-2xl p-8 shadow-xl flex flex-col items-center relative overflow-hidden">
+                <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-primary/20 rounded-full blur-[50px]"></div>
+                
+                <h2 id="process-title" class="text-3xl font-black mb-1 relative z-10">PART <span class="text-secondary">01</span></h2>
+                <p id="process-subtitle" class="text-sm text-gray-400 mb-6 relative z-10">Encoding frames silently...</p>
+
+                <div class="relative w-40 h-40 flex items-center justify-center z-10">
+                    <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                        <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="8"></circle>
+                        <circle id="progress-circle" cx="50" cy="50" r="45" fill="none" stroke="url(#gradient)" stroke-width="8" stroke-dasharray="283" stroke-dashoffset="283" class="transition-all duration-300 ease-out" stroke-linecap="round"></circle>
+                        <defs>
+                            <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" stop-color="#8B5CF6" />
+                                <stop offset="100%" stop-color="#3B82F6" />
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                    <div class="absolute inset-0 flex items-center justify-center flex-col">
+                        <span id="progress-text" class="text-3xl font-black">0%</span>
+                    </div>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div id="action-buttons" class="w-full mt-8 hidden space-y-3 relative z-10">
+                    <button id="btn-download" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 rounded-xl transition-all shadow-[0_0_15px_rgba(16,185,129,0.3)] flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-download"></i> SAVE TO GALLERY
+                    </button>
+                    <button id="btn-next" class="w-full bg-info hover:bg-blue-600 text-white font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2">
+                        PROCESS NEXT <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+                
+                <button id="btn-cancel" onclick="cancelProcessing()" class="w-full mt-6 bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 py-3 rounded-xl transition-all font-semibold relative z-10">
+                    <i class="fa-solid fa-square text-xs mr-1"></i> Abort Process
+                </button>
+            </div>
+            
+            <!-- Generated Gallery (For missed downloads) -->
+            <div id="gallery-container" class="glass-panel rounded-2xl p-5 shadow-xl hidden">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-bold text-sm text-gray-300"><i class="fa-solid fa-photo-film text-secondary mr-2"></i>Generated Gallery</h3>
+                    <span class="text-[10px] text-emerald-400 bg-emerald-400/10 px-2 py-1 rounded">Current Session</span>
+                </div>
+                <div id="gallery-list" class="space-y-2 max-h-48 overflow-y-auto pr-1">
+                    <!-- Cards will be populated here -->
+                </div>
+                <p class="text-[9px] text-gray-500 text-center mt-3">* Old sessions are auto-deleted to keep your phone storage clean.</p>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- HIDDEN PROCESSING ELEMENTS (Core Engine) -->
+    <div class="processing-hidden">
+        <!-- Using muted initially, we control audio routing via Web Audio API so it doesn't play out loud -->
+        <video id="source-video" playsinline webkit-playsinline crossorigin="anonymous" muted></video>
+        <canvas id="render-canvas"></canvas>
+    </div>
+
+    <!-- Script Engine -->
     <script>
-        const app = {
-            state: {
-                file: null, url: null, dur: 0, vW: 1920, vH: 1080,
-                cDur: 59, parts: 0,
-                
-                // Export Settings
-                expRatio: '9:16', // 9:16, 16:9, 1:1
-                expRes: 720, // 1080, 720, 480
-                expBg: 'gradient', // gradient, solid, blur
-                naming: "{name}_Part_{part}",
-                mute: false,
-                autoNext: false,
-                
-                // Advanced MIME Type Selector (Force MP4 if possible for WhatsApp)
-                mime: 'video/mp4; codecs="avc1.42E01E, mp4a.40.2"',
-                ext: 'mp4',
-                
-                tpl: { title: "MY PREMIUM SERIES", font: 'Montserrat', color: "#06b6d4", logo: null, logoPos: 'top-right', logoOp: 0.9 },
-                
-                currPart: 1, isProc: false, abortFlag: false,
-                recorder: null, chunks: [], animId: null, blob: null, fname: ''
-            },
-            els: {},
-
-            init() {
-                // Ensure best compatibility
-                if (!MediaRecorder.isTypeSupported(this.state.mime)) {
-                    if (MediaRecorder.isTypeSupported('video/mp4')) { this.state.mime = 'video/mp4'; this.state.ext = 'mp4'; }
-                    else { this.state.mime = 'video/webm;codecs=vp8,opus'; this.state.ext = 'webm'; }
-                }
-
-                this.els = {
-                    viewH: document.getElementById('view-home'),
-                    viewE: document.getElementById('view-editor'),
-                    viewP: document.getElementById('view-processing'),
-                    vid: document.getElementById('source-video'),
-                    pCanv: document.getElementById('preview-canvas'),
-                    pCtx: document.getElementById('preview-canvas').getContext('2d', {alpha: false}),
-                    rCanv: document.getElementById('render-canvas'),
-                    rCtx: document.getElementById('render-canvas').getContext('2d', {alpha: false})
-                };
-
-                document.getElementById('video-upload').addEventListener('change', (e) => this.loadVideo(e));
-                this.els.vid.addEventListener('loadedmetadata', () => this.vidLoaded());
-                this.els.vid.addEventListener('timeupdate', () => this.updateTL());
-                
-                // Restore settings
-                const saved = JSON.parse(localStorage.getItem('cf_sets') || '{}');
-                if (saved.naming) { this.state.naming = saved.naming; document.getElementById('set-name').value = saved.naming; }
-                if (saved.mute !== undefined) { this.state.mute = saved.mute; document.getElementById('set-mute').checked = saved.mute; }
-                
-                this.loop = this.loop.bind(this);
-            },
-
-            navigate(v) {
-                [this.els.viewH, this.els.viewE, this.els.viewP].forEach(el => el.classList.add('hidden'));
-                if (v === 'home') this.els.viewH.classList.remove('hidden');
-                if (v === 'editor') { this.els.viewE.classList.remove('hidden'); requestAnimationFrame(this.loop); }
-                if (v === 'proc') this.els.viewP.classList.remove('hidden');
-                if (v !== 'editor' && !this.state.isProc) this.els.vid.pause();
-                window.scrollTo(0,0);
-            },
-
-            toast(msg, type='success') {
-                const box = document.getElementById('toast');
-                const t = document.createElement('div');
-                const bg = type === 'success' ? 'bg-green-500/90 border-green-400' : 'bg-red-500/90 border-red-400';
-                t.className = `animate-toast px-4 py-2 rounded-full text-[11px] font-bold text-white shadow-xl flex items-center gap-2 border ${bg}`;
-                t.innerHTML = `<i class="fa-solid fa-${type==='success'?'check':'triangle-exclamation'}"></i> ${msg}`;
-                box.appendChild(t);
-                setTimeout(() => { t.style.opacity=0; t.style.transform='translateY(20px)'; t.style.transition='all 0.3s'; setTimeout(()=>t.remove(),300); }, 3000);
-            },
-
-            // --- UI Modals ---
-            openSettings() { document.getElementById('mod-settings').classList.remove('hidden'); setTimeout(()=>document.getElementById('mod-settings').classList.remove('opacity-0'), 10); },
-            closeModal(id) { document.getElementById(id).classList.add('opacity-0'); setTimeout(()=>document.getElementById(id).classList.add('hidden'), 200); },
-            saveSet() {
-                this.state.naming = document.getElementById('set-name').value;
-                this.state.mute = document.getElementById('set-mute').checked;
-                localStorage.setItem('cf_sets', JSON.stringify({naming: this.state.naming, mute: this.state.mute}));
-                this.closeModal('mod-settings');
-                this.toast('Settings Saved!');
-            },
-            openHistory() { this.toast("History is coming in v2 update!", "info"); },
-
-            // --- Logic ---
-            fmtTime: (s) => `${Math.floor(s/60).toString().padStart(2,'0')}:${Math.floor(s%60).toString().padStart(2,'0')}`,
-            pad: (n) => n.toString().padStart(2,'0'),
-
-            loadVideo(e) {
-                const f = e.target.files[0]; if(!f) return;
-                if(this.state.url) URL.revokeObjectURL(this.state.url);
-                this.state.file = f;
-                this.state.url = URL.createObjectURL(f);
-                this.els.vid.src = this.state.url;
-                document.getElementById('info-filename').textContent = f.name;
-                this.navigate('editor');
-            },
-
-            vidLoaded() {
-                this.state.dur = this.els.vid.duration;
-                this.state.vW = this.els.vid.videoWidth;
-                this.state.vH = this.els.vid.videoHeight;
-                document.getElementById('info-duration').textContent = this.fmtTime(this.state.dur);
-                document.getElementById('info-res').textContent = `${this.state.vW}x${this.state.vH}`;
-                document.getElementById('timeline-end').textContent = this.fmtTime(this.state.dur);
-                this.updateQuality();
-            },
-
-            setDur(s) { document.getElementById('cfg-duration').value = s; this.calcParts(); },
-            
-            calcParts() {
-                let d = parseInt(document.getElementById('cfg-duration').value) || 59;
-                this.state.cDur = Math.max(1, Math.min(d, 3600)); // 1s to 1h
-                this.state.parts = Math.ceil(this.state.dur / this.state.cDur);
-                document.getElementById('info-parts').textContent = this.state.parts;
-                
-                let rem = this.state.dur % this.state.cDur;
-                document.getElementById('info-final').textContent = (rem > 0.1 ? Math.round(rem) : this.state.cDur) + 's';
-
-                // Update Timeline visually
-                const cont = document.getElementById('timeline-splits');
-                cont.innerHTML = '';
-                for (let i = 1; i < this.state.parts; i++) {
-                    let p = ((i * this.state.cDur) / this.state.dur) * 100;
-                    let m = document.createElement('div');
-                    m.className = 'absolute top-0 bottom-0 w-[1px] bg-red-500 z-10';
-                    m.style.left = `${p}%`;
-                    cont.appendChild(m);
-                }
-                this.updateTemplate();
-            },
-
-            updateQuality() {
-                this.state.expRatio = document.getElementById('cfg-ratio').value;
-                this.state.expRes = parseInt(document.getElementById('cfg-qual').value);
-                this.state.expBg = document.getElementById('cfg-bg').value;
-                
-                let w, h;
-                // Calculate dimensions based on aspect ratio chosen
-                if (this.state.expRatio === '9:16') { h = this.state.expRes === 1080 ? 1920 : (this.state.expRes === 720 ? 1280 : 854); w = this.state.expRes; }
-                else if (this.state.expRatio === '1:1') { h = this.state.expRes; w = this.state.expRes; }
-                else { h = this.state.expRes; w = Math.round(h * (16/9)); } // 16:9
-
-                if (w%2 !== 0) w++; if (h%2 !== 0) h++;
-                
-                this.els.rCanv.width = w; this.els.rCanv.height = h;
-                
-                // Preview Canvas is 1/2 size for UI performance
-                this.els.pCanv.width = w/2; this.els.pCanv.height = h/2;
-                
-                this.calcParts();
-            },
-
-            handleLogo(e) {
-                const f = e.target.files[0]; if(!f) return;
-                const img = new Image();
-                img.onload = () => { this.state.tpl.logo = img; this.updateTemplate(); };
-                img.src = URL.createObjectURL(f);
-            },
-            clearLogo() { this.state.tpl.logo = null; this.updateTemplate(); },
-
-            updateTemplate() {
-                this.state.tpl.title = document.getElementById('tpl-title').value;
-                this.state.tpl.font = document.getElementById('tpl-font').value;
-                this.state.tpl.color = document.getElementById('tpl-color').value;
-                this.state.tpl.logoPos = document.getElementById('tpl-logo-pos').value;
-                this.state.tpl.logoOp = parseFloat(document.getElementById('tpl-logo-op').value);
-                this.state.expBg = document.getElementById('cfg-bg').value;
-                this.drawFrame(this.els.pCtx, this.els.pCanv, this.getPartNum());
-            },
-
-            getPartNum() { return Math.min(this.state.parts, Math.floor(this.els.vid.currentTime / this.state.cDur) + 1); },
-            
-            previewPlayPause() {
-                if(this.els.vid.paused) { this.els.vid.play(); document.getElementById('preview-play-icon').classList.replace('fa-play','fa-pause'); }
-                else { this.els.vid.pause(); document.getElementById('preview-play-icon').classList.replace('fa-pause','fa-play'); }
-            },
-            
-            updateTL() {
-                if(this.state.isProc) return;
-                document.getElementById('timeline-progress').style.width = `${(this.els.vid.currentTime/this.state.dur)*100}%`;
-                document.getElementById('preview-time').textContent = this.fmtTime(this.els.vid.currentTime);
-            },
-            
-            seekTimeline(e) {
-                const r = document.getElementById('timeline-bar').getBoundingClientRect();
-                this.els.vid.currentTime = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)) * this.state.dur;
-                this.drawFrame(this.els.pCtx, this.els.pCanv, this.getPartNum());
-            },
-
-            loop() {
-                if (!this.state.isProc && !this.els.vid.paused) this.drawFrame(this.els.pCtx, this.els.pCanv, this.getPartNum());
-                if (!this.state.isProc) requestAnimationFrame(this.loop);
-            },
-
-            // ✨ SMART DRAWING ENGINE ✨
-            drawFrame(ctx, cvs, partNum) {
-                if (!this.state.vW) return;
-                const cW = cvs.width, cH = cvs.height;
-                
-                // 1. Draw Background Fast
-                if (this.state.expBg === 'gradient') {
-                    const grd = ctx.createLinearGradient(0, 0, 0, cH);
-                    grd.addColorStop(0, "#0f172a"); grd.addColorStop(1, "#020617");
-                    ctx.fillStyle = grd; ctx.fillRect(0, 0, cW, cH);
-                } else if (this.state.expBg === 'blur') {
-                    // Optimized blur: draw video scaled up to cover canvas
-                    ctx.save();
-                    const s = Math.max(cW/this.state.vW, cH/this.state.vH);
-                    ctx.filter = 'blur(15px) brightness(0.4)';
-                    ctx.drawImage(this.els.vid, (cW - this.state.vW*s)/2, (cH - this.state.vH*s)/2, this.state.vW*s, this.state.vH*s);
-                    ctx.restore();
-                } else {
-                    ctx.fillStyle = '#000000'; ctx.fillRect(0, 0, cW, cH);
-                }
-
-                // 2. Draw Video (Smart Center Fit)
-                const scale = Math.min(cW/this.state.vW, cH/this.state.vH);
-                const dW = this.state.vW * scale;
-                const dH = this.state.vH * scale;
-                const dx = (cW - dW)/2;
-                const dy = (cH - dH)/2;
-                try { ctx.drawImage(this.els.vid, dx, dy, dW, dH); } catch(e){}
-
-                // 3. Smart Text Placement (Auto detects empty space for 9:16)
-                const padding = cW * 0.05;
-                const titleSz = Math.max(16, cW * 0.06);
-                const partSz = Math.max(12, cW * 0.04);
-                
-                let titleY = padding;
-                let partY = cH - padding - partSz;
-
-                // If 9:16 format, put text exactly in the middle of the top/bottom black bars
-                if (this.state.expRatio === '9:16' && dy > titleSz * 2) {
-                    titleY = dy / 2 - titleSz / 2;
-                    partY = dy + dH + (dy / 2) - partSz / 2;
-                }
-
-                ctx.shadowColor = 'rgba(0,0,0,0.8)'; ctx.shadowBlur = 8; ctx.shadowOffsetY = 2;
-                
-                // Title
-                if (this.state.tpl.title) {
-                    ctx.fillStyle = this.state.tpl.color;
-                    ctx.font = `900 ${titleSz}px ${this.state.tpl.font}`;
-                    ctx.textAlign = 'center'; ctx.textBaseline = 'top';
-                    ctx.fillText(this.state.tpl.title.toUpperCase(), cW/2, titleY);
-                }
-                
-                // Part Number
-                ctx.fillStyle = '#ffffff';
-                ctx.font = `700 ${partSz}px ${this.state.tpl.font}`;
-                ctx.textAlign = 'center'; ctx.textBaseline = 'top';
-                ctx.fillText(`PART ${this.pad(partNum)} / ${this.pad(this.state.parts)}`, cW/2, partY);
-                
-                ctx.shadowColor = 'transparent';
-
-                // 4. Logo
-                if (this.state.tpl.logo) {
-                    const img = this.state.tpl.logo;
-                    const imgH = cH * 0.08; const imgW = imgH * (img.width/img.height);
-                    let lx = this.state.tpl.logoPos.includes('left') ? padding : cW - imgW - padding;
-                    let ly = dy + padding; // Align inside video area top
-                    ctx.globalAlpha = this.state.tpl.logoOp;
-                    ctx.drawImage(img, lx, ly, imgW, imgH);
-                    ctx.globalAlpha = 1.0;
-                }
-            },
-
-            // --- Export Engine ---
-            startProcessing() {
-                if (this.state.parts === 0) return;
-                this.state.autoNext = document.getElementById('proc-mode').value === 'auto';
-                this.els.vid.pause();
-                document.getElementById('preview-play-icon').classList.replace('fa-pause','fa-play');
-                
-                const grid = document.getElementById('proc-grid');
-                grid.innerHTML = '';
-                for(let i=1; i<=this.state.parts; i++) {
-                    const el = document.createElement('div');
-                    el.id = `grid-${i}`;
-                    el.className = 'px-3 py-1.5 rounded-lg text-[10px] font-bold bg-navy-800 border border-white/10 text-gray-500 flex items-center gap-2';
-                    el.innerHTML = `<span class="status-dot status-pending"></span> P-${this.pad(i)}`;
-                    grid.appendChild(el);
-                }
-
-                this.state.currPart = 1;
-                this.navigate('proc');
-                setTimeout(() => this.process(this.state.currPart), 500);
-            },
-
-            updGrid(i, s) {
-                const el = document.getElementById(`grid-${i}`); if(!el) return;
-                const dot = el.querySelector('.status-dot'); dot.className = 'status-dot';
-                el.classList.remove('border-accent-cyan', 'text-white', 'border-green-500', 'text-green-400', 'bg-accent-cyan/10', 'bg-green-500/10');
-                if (s === 'proc') { dot.classList.add('status-processing'); el.classList.add('border-accent-cyan', 'text-white', 'bg-accent-cyan/10'); el.scrollIntoView({behavior:'smooth', block:'nearest'}); }
-                else if (s === 'done') { dot.classList.add('status-done'); el.classList.add('border-green-500', 'text-green-400', 'bg-green-500/10'); }
-            },
-
-            async process(partNum) {
-                this.state.isProc = true; this.state.abortFlag = false;
-                
-                // Reset UI
-                document.getElementById('proc-part-num').textContent = this.pad(partNum);
-                document.getElementById('proc-overall').textContent = `${partNum-1}/${this.state.parts} Done`;
-                document.getElementById('proc-actions-active').classList.remove('hidden');
-                document.getElementById('proc-actions-done').classList.add('hidden');
-                document.getElementById('proc-ring-box').classList.remove('hidden');
-                document.getElementById('proc-result-box').classList.add('hidden');
-                document.getElementById('proc-status').textContent = "Encoding frames...";
-                this.updProg(0); this.updGrid(partNum, 'proc');
-
-                const tStart = (partNum - 1) * this.state.cDur;
-                const tTarget = (partNum === this.state.parts) ? (this.state.dur - tStart) : this.state.cDur;
-                
-                this.els.vid.currentTime = tStart;
-                await new Promise(r => this.els.vid.addEventListener('seeked', r, {once:true}));
-
-                // Get Stream (Force 30 FPS for stability)
-                const stream = this.els.rCanv.captureStream(30);
-                
-                // Absolute Sync Audio Logic
-                if (!this.state.mute) {
-                    try {
-                        const vStream = this.els.vid.captureStream ? this.els.vid.captureStream() : (this.els.vid.mozCaptureStream ? this.els.vid.mozCaptureStream() : null);
-                        if (vStream && vStream.getAudioTracks().length > 0) {
-                            stream.addTrack(vStream.getAudioTracks()[0]);
-                        }
-                    } catch(e) { console.warn("No native audio track stream found."); }
-                }
-
-                // Bitrate Optimization based on Resolution
-                const bps = this.state.expRes >= 1080 ? 12000000 : (this.state.expRes >= 720 ? 8000000 : 3000000);
-
-                try { this.state.recorder = new MediaRecorder(stream, { mimeType: this.state.mime, videoBitsPerSecond: bps }); }
-                catch(e) { this.state.recorder = new MediaRecorder(stream); this.state.ext = 'webm'; }
-                
-                this.state.chunks = [];
-                this.state.recorder.ondataavailable = e => { if(e.data && e.data.size > 0) this.state.chunks.push(e.data); };
-                this.state.recorder.onstop = () => {
-                    if (this.state.abortFlag) return this.done(false);
-                    this.state.blob = new Blob(this.state.chunks, { type: this.state.mime });
-                    const base = this.state.file.name.replace(/\.[^/.]+$/, "").replace(/[^a-zA-Z0-9]/g, '_');
-                    this.state.fname = this.state.naming.replace('{name}', base).replace('{part}', this.pad(partNum)) + `.${this.state.ext}`;
-                    this.updGrid(partNum, 'done');
-                    this.done(true, partNum);
-                };
-
-                this.state.recorder.start(100);
-                
-                // Mute source video during processing so it doesn't echo
-                this.els.vid.muted = true;
-                this.els.vid.playbackRate = 1.0; 
-                this.els.vid.play();
-
-                // High-Performance Render Loop
-                const self = this;
-                function tick() {
-                    if (self.state.abortFlag) { self.els.vid.pause(); if(self.state.recorder.state !== 'inactive') self.state.recorder.stop(); return; }
-                    
-                    // Anti-Pause Watchdog (Critical for mobile)
-                    if (self.els.vid.paused && !self.els.vid.ended) self.els.vid.play();
-
-                    const elapsed = self.els.vid.currentTime - tStart;
-                    self.drawFrame(self.els.rCtx, self.els.rCanv, partNum);
-                    self.updProg(Math.min(100, Math.max(0, (elapsed/tTarget)*100)));
-
-                    if (elapsed >= tTarget || self.els.vid.ended) {
-                        self.els.vid.pause();
-                        if (self.state.recorder.state !== 'inactive') self.state.recorder.stop();
-                    } else {
-                        // Use requestVideoFrameCallback if available for perfect sync, else fallback to standard raf
-                        if ('requestVideoFrameCallback' in self.els.vid) {
-                            self.state.animId = self.els.vid.requestVideoFrameCallback(tick);
-                        } else {
-                            self.state.animId = requestAnimationFrame(tick);
-                        }
-                    }
-                }
-                tick();
-            },
-
-            updProg(p) {
-                document.getElementById('proc-percent').textContent = Math.floor(p) + '%';
-                document.getElementById('proc-ring').style.strokeDashoffset = 289 - (289 * p / 100);
-            },
-
-            done(success, pNum) {
-                this.state.isProc = false;
-                if (!success) { this.navigate('editor'); return; }
-
-                const vUrl = URL.createObjectURL(this.state.blob);
-                document.getElementById('proc-ring-box').classList.add('hidden');
-                document.getElementById('proc-result-box').classList.remove('hidden');
-                document.getElementById('proc-video').src = vUrl;
-                document.getElementById('proc-status').textContent = "Render Complete!";
-                this.updProg(100);
-                document.getElementById('proc-actions-active').classList.add('hidden');
-                document.getElementById('proc-actions-done').classList.remove('hidden');
-                document.getElementById('proc-overall').textContent = `${pNum}/${this.state.parts} Done`;
-                
-                this.toast(`Part ${pNum} ready to save!`);
-
-                if (this.state.autoNext && pNum < this.state.parts) {
-                    setTimeout(() => this.downloadFile(), 1000);
-                    setTimeout(() => this.nextPart(), 2500);
-                }
-            },
-
-            // ✨ 100% RELIABLE DIRECT DOWNLOAD ✨
-            downloadFile() {
-                if (!this.state.blob) return;
-                try {
-                    const url = window.URL.createObjectURL(this.state.blob);
-                    const a = document.createElement('a');
-                    a.style.display = 'none';
-                    a.href = url;
-                    a.download = this.state.fname;
-                    document.body.appendChild(a);
-                    a.click();
-                    setTimeout(() => { document.body.removeChild(a); window.URL.revokeObjectURL(url); }, 500);
-                    this.toast("Saving to Gallery...");
-                } catch(e) {
-                    this.toast("Error. Please long-press the video to save.", "error");
-                }
-            },
-
-            nextPart() {
-                this.state.chunks = []; this.state.blob = null;
-                if (this.state.currPart < this.state.parts) {
-                    this.state.currPart++;
-                    this.process(this.state.currPart);
-                } else {
-                    this.toast("All Parts Completed!", "success");
-                    setTimeout(() => this.navigate('home'), 1500);
-                }
-            },
-
-            abort() {
-                this.state.abortFlag = true;
-                if (this.state.animId) {
-                    if('cancelVideoFrameCallback' in this.els.vid) this.els.vid.cancelVideoFrameCallback(this.state.animId);
-                    else cancelAnimationFrame(this.state.animId);
-                }
-                this.toast("Process Aborted", "error");
-            }
+        // ------------------------------------------
+        // DOM Elements
+        // ------------------------------------------
+        const screens = {
+            import: document.getElementById('screen-import'),
+            editor: document.getElementById('screen-editor'),
+            process: document.getElementById('screen-process')
+        };
+        
+        const uiInputs = {
+            video: document.getElementById('video-input'),
+            duration: document.getElementById('setting-duration'),
+            title: document.getElementById('setting-title'),
+            font: document.getElementById('setting-font'),
+            bg: document.getElementById('setting-bg'),
+            globalRatio: document.getElementById('global-ratio'),
+            globalRes: document.getElementById('global-res'),
+            globalFps: document.getElementById('global-fps'),
+            globalAutoDownload: document.getElementById('global-autodownload')
         };
 
-        window.addEventListener('DOMContentLoaded', () => { app.init(); });
+        const engine = {
+            video: document.getElementById('source-video'),
+            canvas: document.getElementById('render-canvas'),
+            ctx: document.getElementById('render-canvas').getContext('2d', { alpha: false }),
+        };
+
+        // ------------------------------------------
+        // State & IndexedDB (Storage) Setup
+        // ------------------------------------------
+        let appState = {
+            file: null, duration: 0, clipLength: 59, totalParts: 0, clips: [],
+            currentClipIndex: 0, isProcessing: false, mediaRecorder: null, recordedChunks: [],
+            animationFrameId: null, stream: null,
+            audioCtx: null, audioSource: null, audioDest: null,
+            db: null 
+        };
+
+        function initDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open("ClipForgeDB", 1);
+                request.onupgradeneeded = (e) => {
+                    const db = e.target.result;
+                    if(!db.objectStoreNames.contains('clips')) {
+                        db.createObjectStore('clips');
+                    }
+                };
+                request.onsuccess = (e) => {
+                    appState.db = e.target.result;
+                    resolve();
+                };
+                request.onerror = (e) => reject(e);
+            });
+        }
+
+        function clearSessionDB() {
+            if(!appState.db) return;
+            const tx = appState.db.transaction('clips', 'readwrite');
+            tx.objectStore('clips').clear();
+        }
+
+        function saveBlobToDB(partNum, blob, filename) {
+            const tx = appState.db.transaction('clips', 'readwrite');
+            tx.objectStore('clips').put({ blob: blob, filename: filename }, partNum);
+        }
+
+        function downloadFromDB(partNum) {
+            const tx = appState.db.transaction('clips', 'readonly');
+            const req = tx.objectStore('clips').get(partNum);
+            req.onsuccess = () => {
+                if(req.result) {
+                    const url = URL.createObjectURL(req.result.blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = req.result.filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    setTimeout(() => URL.revokeObjectURL(url), 5000);
+                } else {
+                    alert("Error: Clip not found in temporary storage.");
+                }
+            };
+        }
+
+        initDB();
+
+        // Load & Save Settings
+        function loadSettings() {
+            const saved = JSON.parse(localStorage.getItem('clipforge_settings')) || {};
+            if(saved.ratio) uiInputs.globalRatio.value = saved.ratio;
+            if(saved.res) uiInputs.globalRes.value = saved.res;
+            if(saved.fps) uiInputs.globalFps.value = saved.fps;
+            if(saved.autoDownload) uiInputs.globalAutoDownload.value = saved.autoDownload;
+        }
+        loadSettings();
+
+        function toggleSettingsModal() {
+            const modal = document.getElementById('settings-modal');
+            if (modal.classList.contains('hidden')) {
+                modal.classList.remove('hidden');
+                modal.classList.add('modal-open');
+            } else {
+                modal.classList.add('hidden');
+                modal.classList.remove('modal-open');
+            }
+        }
+
+        function saveSettings() {
+            const settings = {
+                ratio: uiInputs.globalRatio.value,
+                res: uiInputs.globalRes.value,
+                fps: uiInputs.globalFps.value,
+                autoDownload: uiInputs.globalAutoDownload.value
+            };
+            localStorage.setItem('clipforge_settings', JSON.stringify(settings));
+            toggleSettingsModal();
+            const btn = document.querySelector('#settings-modal button.bg-gradient-to-r');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = `<i class="fa-solid fa-check"></i> Saved!`;
+            setTimeout(() => { btn.innerHTML = originalText; }, 1500);
+        }
+
+        function showScreen(screenName) {
+            Object.values(screens).forEach(s => s.classList.add('hidden'));
+            screens[screenName].classList.remove('hidden');
+            screens[screenName].classList.add('animate-fade-in');
+        }
+
+        // ------------------------------------------
+        // PHASE 1: Import & Setup
+        // ------------------------------------------
+        uiInputs.video.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            clearSessionDB(); 
+            document.getElementById('gallery-list').innerHTML = '';
+            document.getElementById('gallery-container').classList.add('hidden');
+
+            appState.file = file;
+            const url = URL.createObjectURL(file);
+            
+            engine.video.src = url;
+            engine.video.onloadedmetadata = () => {
+                appState.duration = engine.video.duration;
+                calculateParts();
+                showScreen('editor');
+            };
+        });
+
+        uiInputs.duration.addEventListener('input', calculateParts);
+
+        function calculateParts() {
+            let userLength = parseInt(uiInputs.duration.value);
+            if (isNaN(userLength) || userLength < 1) {
+                userLength = 59;
+                uiInputs.duration.value = 59;
+            }
+            appState.clipLength = userLength;
+            appState.totalParts = Math.ceil(appState.duration / userLength);
+            
+            document.getElementById('ui-total-parts').textContent = appState.totalParts;
+            document.getElementById('ui-final-parts').textContent = appState.totalParts;
+            
+            appState.clips = [];
+            for (let i = 0; i < appState.totalParts; i++) {
+                let start = i * userLength;
+                let end = Math.min(start + userLength, appState.duration);
+                appState.clips.push({ start, end, partNum: i + 1 });
+            }
+            buildStatusGrid();
+        }
+
+        function buildStatusGrid() {
+            const grid = document.getElementById('status-grid');
+            grid.innerHTML = '';
+            for(let i=1; i<=appState.totalParts; i++) {
+                grid.innerHTML += `<div id="status-badge-${i}" class="text-[10px] font-bold px-2 py-1 rounded bg-white/5 text-gray-500 border border-white/5 transition-all">P-${i.toString().padStart(2, '0')}</div>`;
+            }
+        }
+
+        function updateStatusBadge(part, status) {
+            const badge = document.getElementById(`status-badge-${part}`);
+            if(!badge) return;
+            badge.className = `text-[10px] font-bold px-2 py-1 rounded transition-all `;
+            if(status === 'active') badge.className += `bg-primary/20 text-primary border border-primary/50 shadow-[0_0_10px_rgba(139,92,246,0.3)]`;
+            else if(status === 'done') badge.className += `bg-emerald-500/20 text-emerald-400 border border-emerald-500/50`;
+            else badge.className += `bg-white/5 text-gray-500 border border-white/5`;
+        }
+
+        // ------------------------------------------
+        // PHASE 2: Core Render Engine
+        // ------------------------------------------
+        async function startProcessingEngine() {
+            const ratio = uiInputs.globalRatio.value;
+            const res = parseInt(uiInputs.globalRes.value);
+            
+            if (ratio === '9:16') {
+                engine.canvas.width = res === 1080 ? 1080 : 720;
+                engine.canvas.height = res === 1080 ? 1920 : 1280;
+            } else { 
+                engine.canvas.width = res === 1080 ? 1920 : 1280;
+                engine.canvas.height = res === 1080 ? 1080 : 720;
+            }
+
+            if (!appState.audioCtx) {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                appState.audioCtx = new AudioContext();
+                appState.audioSource = appState.audioCtx.createMediaElementSource(engine.video);
+                appState.audioDest = appState.audioCtx.createMediaStreamDestination();
+                appState.audioSource.connect(appState.audioDest);
+            }
+            if (appState.audioCtx.state === 'suspended') {
+                appState.audioCtx.resume();
+            }
+
+            appState.currentClipIndex = 0;
+            showScreen('process');
+            processNextClip();
+        }
+
+        async function processNextClip() {
+            if (appState.currentClipIndex >= appState.clips.length) {
+                alert("🎉 All parts completed successfully!");
+                resetApp();
+                return;
+            }
+
+            appState.isProcessing = true;
+            const currentClip = appState.clips[appState.currentClipIndex];
+            
+            document.getElementById('ui-current-part-text').textContent = `Part ${currentClip.partNum}`;
+            document.getElementById('process-title').innerHTML = `PART <span class="text-secondary">${currentClip.partNum.toString().padStart(2, '0')}</span>`;
+            document.getElementById('process-subtitle').textContent = "Encoding frames silently...";
+            document.getElementById('action-buttons').classList.add('hidden');
+            document.getElementById('btn-cancel').classList.remove('hidden');
+            
+            const btnDownload = document.getElementById('btn-download');
+            btnDownload.innerHTML = `<i class="fa-solid fa-download"></i> SAVE TO GALLERY`;
+            btnDownload.className = "w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 rounded-xl transition-all shadow-[0_0_15px_rgba(16,185,129,0.3)] flex items-center justify-center gap-2";
+
+            updateProgressUI(0);
+            updateStatusBadge(currentClip.partNum, 'active');
+
+            engine.video.currentTime = currentClip.start;
+            engine.video.muted = false; 
+
+            await new Promise((resolve) => { engine.video.onseeked = resolve; });
+
+            const fps = parseInt(uiInputs.globalFps.value) || 60;
+            appState.stream = engine.canvas.captureStream(fps);
+            
+            const audioTrack = appState.audioDest.stream.getAudioTracks()[0];
+            if (audioTrack) {
+                appState.stream.addTrack(audioTrack);
+            }
+
+            const options = { 
+                mimeType: getSupportedMimeType(), 
+                videoBitsPerSecond: 12000000 
+            };
+            
+            try {
+                appState.mediaRecorder = new MediaRecorder(appState.stream, options);
+            } catch (e) {
+                appState.mediaRecorder = new MediaRecorder(appState.stream);
+            }
+
+            appState.recordedChunks = [];
+            appState.mediaRecorder.ondataavailable = (e) => {
+                if (e.data.size > 0) appState.recordedChunks.push(e.data);
+            };
+
+            // STOP LOGIC & AUTO DOWNLOAD + AUTO NEXT ENGINE
+            appState.mediaRecorder.onstop = () => {
+                if(!appState.isProcessing) return; 
+                
+                const blob = new Blob(appState.recordedChunks, { type: options.mimeType.split(';')[0] || 'video/mp4' });
+                const ext = options.mimeType.includes('webm') ? 'webm' : 'mp4';
+                
+                const safeTitle = (uiInputs.title.value || "CLIPFORGE").replace(/[^a-z0-9]/gi, '_').toUpperCase();
+                const filename = `${safeTitle}_PART_${currentClip.partNum.toString().padStart(2, '0')}.${ext}`;
+
+                saveBlobToDB(currentClip.partNum, blob, filename);
+                addGalleryCard(currentClip.partNum, filename);
+
+                document.getElementById('process-subtitle').textContent = "Ready to Save";
+                document.getElementById('action-buttons').classList.remove('hidden');
+                document.getElementById('btn-cancel').classList.add('hidden');
+                updateStatusBadge(currentClip.partNum, 'done');
+                
+                const url = URL.createObjectURL(blob);
+
+                // Setup Download Logic
+                btnDownload.onclick = () => {
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    
+                    btnDownload.innerHTML = `<i class="fa-solid fa-check"></i> SAVED`;
+                    btnDownload.classList.replace('bg-emerald-500', 'bg-darker');
+                    btnDownload.classList.add('border', 'border-emerald-500', 'text-emerald-500', 'shadow-none');
+                };
+
+                // Setup Next Logic
+                const btnNext = document.getElementById('btn-next');
+                btnNext.onclick = () => {
+                    appState.currentClipIndex++;
+                    setTimeout(() => URL.revokeObjectURL(url), 1000);
+                    processNextClip();
+                };
+
+                // 🌟 NEW: FULL AUTOMATION ENGINE (Auto Download + Auto Next) 🌟
+                const autoDownloadSetting = uiInputs.globalAutoDownload.value;
+                if (autoDownloadSetting === 'auto') {
+                    document.getElementById('process-subtitle').textContent = "Auto-saving & moving to next...";
+                    // 1. Automatically click download
+                    btnDownload.click();
+                    
+                    // 2. Wait 1.5 seconds, then automatically click Next
+                    setTimeout(() => {
+                        // Double check to ensure user hasn't cancelled the process during the wait time
+                        if (appState.isProcessing) {
+                            btnNext.click();
+                        }
+                    }, 1500);
+                }
+            };
+
+            engine.video.play();
+            appState.mediaRecorder.start();
+            drawFrame(currentClip);
+        }
+
+        function addGalleryCard(partNum, filename) {
+            document.getElementById('gallery-container').classList.remove('hidden');
+            const list = document.getElementById('gallery-list');
+            
+            const card = document.createElement('div');
+            card.className = "gallery-card bg-darker border border-white/10 rounded-lg p-3 flex justify-between items-center";
+            card.innerHTML = `
+                <div>
+                    <h4 class="text-xs font-bold text-gray-200">Part ${partNum.toString().padStart(2, '0')}</h4>
+                    <p class="text-[9px] text-gray-500">${filename}</p>
+                </div>
+                <button onclick="downloadFromDB(${partNum})" class="bg-primary/20 text-primary hover:bg-primary hover:text-white px-3 py-1.5 rounded transition-colors text-xs font-bold">
+                    <i class="fa-solid fa-download"></i> Save
+                </button>
+            `;
+            list.insertBefore(card, list.firstChild);
+        }
+
+        // ------------------------------------------
+        // PHASE 3: Canvas Drawing & Animation Logic
+        // ------------------------------------------
+        function drawFrame(currentClip) {
+            if (!appState.isProcessing) return;
+
+            const titleText = uiInputs.title.value.toUpperCase() || "CLIPFORGE PRO";
+            const fontStyle = uiInputs.font.value;
+            const bgStyle = uiInputs.bg.value;
+            const ratio = uiInputs.globalRatio.value;
+
+            const ctx = engine.ctx;
+            const w = engine.canvas.width;
+            const h = engine.canvas.height;
+            
+            const currentTime = engine.video.currentTime;
+            const timeInClip = currentTime - currentClip.start;
+            const clipDuration = currentClip.end - currentClip.start;
+            
+            if (bgStyle === 'gradient') {
+                const bgGradient = ctx.createLinearGradient(0, 0, 0, h);
+                bgGradient.addColorStop(0, '#06080D');
+                bgGradient.addColorStop(0.5, '#1e1b4b'); 
+                bgGradient.addColorStop(1, '#06080D');
+                ctx.fillStyle = bgGradient;
+            } else {
+                ctx.fillStyle = '#000000';
+            }
+            ctx.fillRect(0, 0, w, h);
+
+            const vW = engine.video.videoWidth;
+            const vH = engine.video.videoHeight;
+            if (vW && vH) {
+                const videoAspect = vW / vH;
+                let scale, dx, dy, dW, dH;
+                
+                if (ratio === '9:16') {
+                    if (videoAspect < 1.1) {
+                        scale = Math.min(w / vW, h / vH);
+                    } else {
+                        scale = Math.min(w / vW, (h * 0.6) / vH);
+                    }
+                } else { 
+                    if (videoAspect < 1.1) {
+                        scale = Math.min(w / vW, h / vH);
+                    } else {
+                        scale = Math.min(w / vW, (h * 0.8) / vH);
+                    }
+                }
+
+                dW = vW * scale;
+                dH = vH * scale;
+                dx = (w - dW) / 2;
+                dy = (h - dH) / 2;
+                
+                ctx.drawImage(engine.video, dx, dy, dW, dH);
+            }
+
+            // TEXT ANIMATION ENGINE
+            ctx.save();
+            const animDuration = 1.0; 
+            let alpha = 1;
+            let slideYTitle = 0;
+            let slideYPart = 0;
+
+            if (timeInClip < animDuration) {
+                const progress = timeInClip / animDuration;
+                const ease = 1 - Math.pow(1 - progress, 4);
+                alpha = ease;
+                slideYTitle = 50 * (1 - ease); 
+                slideYPart = -50 * (1 - ease); 
+            }
+
+            ctx.globalAlpha = alpha;
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+
+            const shimmerSpeed = timeInClip * 2;
+            const titleGrad = ctx.createLinearGradient(w/2 - 300, 0, w/2 + 300, 0);
+            const shift1 = (Math.sin(shimmerSpeed) + 1) / 2;
+            const shift2 = (Math.cos(shimmerSpeed) + 1) / 2;
+            titleGrad.addColorStop(0, `rgba(168, 85, 247, 1)`); 
+            titleGrad.addColorStop(shift1, `rgba(236, 72, 153, 1)`); 
+            titleGrad.addColorStop(shift2, `rgba(59, 130, 246, 1)`); 
+            titleGrad.addColorStop(1, `rgba(255, 255, 255, 1)`); 
+
+            const fontSizeTitle = ratio === '16:9' ? (w * 0.04) : (w * 0.07);
+            const fontSizePart = ratio === '16:9' ? (w * 0.05) : (w * 0.08);
+            const posYTitle = ratio === '16:9' ? (h * 0.08) : (h * 0.15);
+            const posYPart = ratio === '16:9' ? (h * 0.92) : (h * 0.85);
+
+            ctx.fillStyle = titleGrad;
+            ctx.font = `900 ${fontSizeTitle}px ${fontStyle}`;
+            ctx.shadowColor = 'rgba(0,0,0,0.8)';
+            ctx.shadowBlur = 10;
+            ctx.fillText(titleText, w / 2, posYTitle + slideYTitle);
+
+            const partText = `PART ${currentClip.partNum.toString().padStart(2, '0')} / ${appState.totalParts.toString().padStart(2, '0')}`;
+            ctx.fillStyle = "#ffffff";
+            ctx.font = `900 ${fontSizePart}px ${fontStyle}`;
+            ctx.fillText(partText, w / 2, posYPart + slideYPart);
+            
+            ctx.restore(); 
+
+            const progressPercent = Math.min(100, Math.floor((timeInClip / clipDuration) * 100));
+            updateProgressUI(progressPercent);
+
+            if (currentTime >= currentClip.end || engine.video.ended) {
+                engine.video.pause();
+                appState.mediaRecorder.stop();
+            } else {
+                appState.animationFrameId = requestAnimationFrame(() => drawFrame(currentClip));
+            }
+        }
+
+        // ------------------------------------------
+        // Helper Functions
+        // ------------------------------------------
+        function updateProgressUI(percent) {
+            document.getElementById('progress-text').textContent = `${percent}%`;
+            const offset = 283 - (283 * percent) / 100;
+            document.getElementById('progress-circle').style.strokeDashoffset = offset;
+        }
+
+        function getSupportedMimeType() {
+            const types = [
+                'video/mp4;codecs=avc1,mp4a.40.2',
+                'video/mp4',
+                'video/webm;codecs=vp8,opus',
+                'video/webm'
+            ];
+            for (let t of types) {
+                if (MediaRecorder.isTypeSupported(t)) return t;
+            }
+            return ''; 
+        }
+
+        function cancelProcessing() {
+            appState.isProcessing = false;
+            engine.video.pause();
+            if (appState.mediaRecorder && appState.mediaRecorder.state !== 'inactive') {
+                appState.mediaRecorder.stop();
+            }
+            if (appState.animationFrameId) {
+                cancelAnimationFrame(appState.animationFrameId);
+            }
+            updateStatusBadge(appState.clips[appState.currentClipIndex].partNum, 'pending');
+            alert("Processing Aborted.");
+            showScreen('editor');
+        }
+
+        function resetApp() {
+            cancelProcessing();
+            appState.file = null;
+            engine.video.src = "";
+            uiInputs.video.value = "";
+            showScreen('import');
+        }
     </script>
 </body>
 </html>
