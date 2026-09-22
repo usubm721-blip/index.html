@@ -57,7 +57,6 @@
         .modal-open { display: flex !important; animation: fadeIn 0.2s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
         
-        /* Custom UI for Gallery Cards */
         .gallery-card { transition: all 0.2s ease; }
         .gallery-card:active { transform: scale(0.97); }
     </style>
@@ -110,7 +109,6 @@
                         <option value="30">30 FPS (Low End Device)</option>
                     </select>
                 </div>
-                <!-- Advanced Auto Mode (Download + Next) -->
                 <div>
                     <label class="block text-sm font-semibold mb-2 text-gray-300 text-emerald-400"><i class="fa-solid fa-bolt mr-1"></i> Automation Engine</label>
                     <select id="global-autodownload" class="w-full bg-darker border border-emerald-500/30 rounded-lg px-3 py-3 text-sm focus:outline-none focus:border-emerald-500 transition-colors">
@@ -137,8 +135,9 @@
                 <p class="text-gray-400 text-sm px-4">Smart offline splitter with professional animations, up to 90fps support & strict privacy.</p>
             </div>
 
+            <!-- FIX: Added capture attribute & changed accept string to force better gallery handling -->
             <label class="relative block w-full aspect-[4/3] rounded-3xl border-2 border-dashed border-primary/30 bg-primary/5 hover:bg-primary/10 transition-all cursor-pointer group overflow-hidden shadow-[0_0_20px_rgba(139,92,246,0.1)]">
-                <input type="file" id="video-input" accept="video/mp4,video/webm,video/mov,video/quicktime" class="hidden">
+                <input type="file" id="video-input" accept="video/*" class="hidden">
                 <div class="absolute inset-0 flex flex-col items-center justify-center">
                     <div class="w-16 h-16 rounded-full bg-gradient-to-tr from-primary to-secondary flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-[0_0_30px_rgba(139,92,246,0.3)]">
                         <i class="fa-solid fa-cloud-arrow-up text-2xl text-white"></i>
@@ -154,7 +153,6 @@
 
         <!-- SCREEN 2: Editor / Studio -->
         <div id="screen-editor" class="space-y-6 hidden">
-            <!-- Header -->
             <div class="flex items-center justify-between">
                 <button onclick="resetApp()" class="text-gray-400 hover:text-white px-3 py-1.5 rounded-lg bg-white/5 text-sm transition-colors">
                     <i class="fa-solid fa-arrow-left mr-2"></i> Change Video
@@ -164,11 +162,9 @@
                 </div>
             </div>
 
-            <!-- Settings Card -->
             <div class="glass-panel rounded-2xl p-5 shadow-xl space-y-5 border-t border-primary/30 relative overflow-hidden">
                 <div class="absolute -right-10 -top-10 w-32 h-32 bg-primary/10 blur-3xl rounded-full pointer-events-none"></div>
                 
-                <!-- Duration -->
                 <div>
                     <label class="block text-sm font-semibold mb-2 text-gray-300">Clip Duration (Seconds)</label>
                     <div class="flex items-center gap-3">
@@ -180,7 +176,6 @@
                     </div>
                 </div>
 
-                <!-- Text Customization -->
                 <div>
                     <label class="block text-sm font-semibold mb-2 text-gray-300">Series Title (Top Text)</label>
                     <input type="text" id="setting-title" placeholder="e.g., MR BEAST EXCLUSIVE" value="MY PREMIUM SERIES" class="w-full bg-darker border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-primary transition-colors">
@@ -206,7 +201,6 @@
 
             </div>
 
-            <!-- Start Button -->
             <button onclick="startProcessingEngine()" class="w-full bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-white font-bold py-4 rounded-xl shadow-[0_0_20px_rgba(139,92,246,0.3)] transition-all transform active:scale-[0.98] flex items-center justify-center gap-2 text-lg relative overflow-hidden">
                 <div class="absolute inset-0 bg-white/20 animate-pulse-slow"></div>
                 <i class="fa-solid fa-microchip relative z-10"></i> <span class="relative z-10">START RENDER ENGINE</span>
@@ -226,7 +220,6 @@
                 </div>
             </div>
 
-            <!-- Status Grid -->
             <div class="glass-panel rounded-xl p-4 shadow-xl">
                 <div class="flex justify-between text-xs text-gray-400 mb-3">
                     <span>Task Queue</span>
@@ -237,7 +230,6 @@
                 </div>
             </div>
 
-            <!-- Progress Circle -->
             <div class="glass-panel rounded-2xl p-8 shadow-xl flex flex-col items-center relative overflow-hidden">
                 <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-primary/20 rounded-full blur-[50px]"></div>
                 
@@ -260,7 +252,6 @@
                     </div>
                 </div>
                 
-                <!-- Action Buttons -->
                 <div id="action-buttons" class="w-full mt-8 hidden space-y-3 relative z-10">
                     <button id="btn-download" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 rounded-xl transition-all shadow-[0_0_15px_rgba(16,185,129,0.3)] flex items-center justify-center gap-2">
                         <i class="fa-solid fa-download"></i> SAVE TO GALLERY
@@ -275,7 +266,6 @@
                 </button>
             </div>
             
-            <!-- Generated Gallery (For missed downloads) -->
             <div id="gallery-container" class="glass-panel rounded-2xl p-5 shadow-xl hidden">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="font-bold text-sm text-gray-300"><i class="fa-solid fa-photo-film text-secondary mr-2"></i>Generated Gallery</h3>
@@ -430,11 +420,16 @@
         }
 
         // ------------------------------------------
-        // PHASE 1: Import & Setup
+        // PHASE 1: Import & Setup (FIXED FILE INPUT)
         // ------------------------------------------
         uiInputs.video.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (!file) return;
+
+            // Free previous object URL to prevent memory leaks with large files
+            if(engine.video.src) {
+                URL.revokeObjectURL(engine.video.src);
+            }
 
             clearSessionDB(); 
             document.getElementById('gallery-list').innerHTML = '';
@@ -444,11 +439,17 @@
             const url = URL.createObjectURL(file);
             
             engine.video.src = url;
+            
+            // For large files, it might take a moment to read metadata.
             engine.video.onloadedmetadata = () => {
                 appState.duration = engine.video.duration;
                 calculateParts();
                 showScreen('editor');
             };
+            
+            engine.video.onerror = () => {
+                alert("Error loading video. It might be corrupted or in an unsupported format.");
+            }
         });
 
         uiInputs.duration.addEventListener('input', calculateParts);
@@ -616,16 +617,13 @@
                     processNextClip();
                 };
 
-                // 🌟 NEW: FULL AUTOMATION ENGINE (Auto Download + Auto Next) 🌟
+                // FULL AUTOMATION ENGINE
                 const autoDownloadSetting = uiInputs.globalAutoDownload.value;
                 if (autoDownloadSetting === 'auto') {
                     document.getElementById('process-subtitle').textContent = "Auto-saving & moving to next...";
-                    // 1. Automatically click download
                     btnDownload.click();
                     
-                    // 2. Wait 1.5 seconds, then automatically click Next
                     setTimeout(() => {
-                        // Double check to ensure user hasn't cancelled the process during the wait time
                         if (appState.isProcessing) {
                             btnNext.click();
                         }
