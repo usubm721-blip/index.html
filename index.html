@@ -135,7 +135,6 @@
                 <p class="text-gray-400 text-sm px-4">Smart offline splitter with professional animations, up to 90fps support & strict privacy.</p>
             </div>
 
-            <!-- FIX: Added capture attribute & changed accept string to force better gallery handling -->
             <label class="relative block w-full aspect-[4/3] rounded-3xl border-2 border-dashed border-primary/30 bg-primary/5 hover:bg-primary/10 transition-all cursor-pointer group overflow-hidden shadow-[0_0_20px_rgba(139,92,246,0.1)]">
                 <input type="file" id="video-input" accept="video/*" class="hidden">
                 <div class="absolute inset-0 flex flex-col items-center justify-center">
@@ -152,17 +151,43 @@
         </div>
 
         <!-- SCREEN 2: Editor / Studio -->
-        <div id="screen-editor" class="space-y-6 hidden">
+        <div id="screen-editor" class="space-y-4 hidden">
             <div class="flex items-center justify-between">
-                <button onclick="resetApp()" class="text-gray-400 hover:text-white px-3 py-1.5 rounded-lg bg-white/5 text-sm transition-colors">
+                <button onclick="fullResetApp()" class="text-gray-400 hover:text-white px-3 py-1.5 rounded-lg bg-white/5 text-sm transition-colors">
                     <i class="fa-solid fa-arrow-left mr-2"></i> Change Video
                 </button>
                 <div class="text-xs font-semibold bg-info/20 text-info px-3 py-1.5 rounded-lg border border-info/20">
                     <i class="fa-solid fa-wand-magic-sparkles mr-1"></i> STUDIO MODE
                 </div>
             </div>
+            
+            <!-- Video Info & Trimming -->
+            <div class="glass-panel rounded-xl p-4 shadow-xl border border-white/5">
+                <h3 class="text-sm font-bold text-gray-300 mb-3 flex justify-between">
+                    <span><i class="fa-solid fa-scissors mr-1 text-primary"></i> Trim Boundaries</span>
+                    <span id="ui-video-full-duration" class="text-xs text-gray-400">Total: 00:00:00</span>
+                </h3>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-[10px] text-gray-400 mb-1">Start From (Sec or MM:SS)</label>
+                        <input type="text" id="trim-start" placeholder="e.g. 300 or 5:00" class="w-full bg-darker border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary transition-colors">
+                        <p class="text-[9px] text-gray-500 mt-1">Skip first parts</p>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] text-gray-400 mb-1">End At (Sec or MM:SS)</label>
+                        <input type="text" id="trim-end" placeholder="e.g. 3600 or 60:00" class="w-full bg-darker border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary transition-colors">
+                        <p class="text-[9px] text-gray-500 mt-1">Skip ending parts</p>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <button onclick="applyTrim()" class="w-full bg-primary/20 hover:bg-primary/40 text-primary text-xs font-bold py-2 rounded-lg transition-colors border border-primary/30">
+                        Apply Trim & Recalculate
+                    </button>
+                </div>
+            </div>
 
-            <div class="glass-panel rounded-2xl p-5 shadow-xl space-y-5 border-t border-primary/30 relative overflow-hidden">
+            <!-- Main Settings Card -->
+            <div class="glass-panel rounded-xl p-5 shadow-xl border border-primary/20 relative overflow-hidden">
                 <div class="absolute -right-10 -top-10 w-32 h-32 bg-primary/10 blur-3xl rounded-full pointer-events-none"></div>
                 
                 <div>
@@ -175,13 +200,29 @@
                         </div>
                     </div>
                 </div>
+                
+                <!-- Range Processor (Process specific batch) -->
+                <div class="mt-4 p-3 bg-darker/50 rounded-lg border border-white/5">
+                    <label class="block text-xs font-semibold mb-2 text-emerald-400"><i class="fa-solid fa-list-ol"></i> Process Specific Batch</label>
+                    <div class="flex items-center justify-between gap-2">
+                        <div class="flex-1 flex items-center gap-2">
+                            <span class="text-[10px] text-gray-400">Start Part</span>
+                            <input type="number" id="process-start-part" value="1" min="1" class="w-full bg-darker border border-white/10 rounded px-2 py-1 text-center font-mono text-sm focus:outline-none focus:border-emerald-500 transition-colors">
+                        </div>
+                        <div class="flex-1 flex items-center gap-2">
+                            <span class="text-[10px] text-gray-400">End Part</span>
+                            <input type="number" id="process-end-part" value="1" min="1" class="w-full bg-darker border border-white/10 rounded px-2 py-1 text-center font-mono text-sm focus:outline-none focus:border-emerald-500 transition-colors">
+                        </div>
+                    </div>
+                    <p class="text-[9px] text-gray-500 mt-2">* Example: If you rendered 1 to 5 yesterday, set Start to 6 and End to 12 today.</p>
+                </div>
 
-                <div>
+                <div class="mt-4">
                     <label class="block text-sm font-semibold mb-2 text-gray-300">Series Title (Top Text)</label>
                     <input type="text" id="setting-title" placeholder="e.g., MR BEAST EXCLUSIVE" value="MY PREMIUM SERIES" class="w-full bg-darker border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-primary transition-colors">
                 </div>
 
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-2 gap-4 mt-4">
                     <div>
                         <label class="block text-sm font-semibold mb-2 text-gray-300">Font Style</label>
                         <select id="setting-font" class="w-full bg-darker border border-white/10 rounded-lg px-3 py-2.5 text-sm focus:outline-none">
@@ -203,7 +244,7 @@
 
             <button onclick="startProcessingEngine()" class="w-full bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-white font-bold py-4 rounded-xl shadow-[0_0_20px_rgba(139,92,246,0.3)] transition-all transform active:scale-[0.98] flex items-center justify-center gap-2 text-lg relative overflow-hidden">
                 <div class="absolute inset-0 bg-white/20 animate-pulse-slow"></div>
-                <i class="fa-solid fa-microchip relative z-10"></i> <span class="relative z-10">START RENDER ENGINE</span>
+                <i class="fa-solid fa-microchip relative z-10"></i> <span class="relative z-10">START RENDER BATCH</span>
             </button>
         </div>
 
@@ -266,7 +307,7 @@
                 </button>
             </div>
             
-            <div id="gallery-container" class="glass-panel rounded-2xl p-5 shadow-xl hidden">
+            <div id="gallery-container" class="glass-panel rounded-2xl p-5 shadow-xl hidden mt-4">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="font-bold text-sm text-gray-300"><i class="fa-solid fa-photo-film text-secondary mr-2"></i>Generated Gallery</h3>
                     <span class="text-[10px] text-emerald-400 bg-emerald-400/10 px-2 py-1 rounded">Current Session</span>
@@ -274,16 +315,14 @@
                 <div id="gallery-list" class="space-y-2 max-h-48 overflow-y-auto pr-1">
                     <!-- Cards will be populated here -->
                 </div>
-                <p class="text-[9px] text-gray-500 text-center mt-3">* Old sessions are auto-deleted to keep your phone storage clean.</p>
             </div>
 
         </div>
 
     </main>
 
-    <!-- HIDDEN PROCESSING ELEMENTS (Core Engine) -->
+    <!-- HIDDEN PROCESSING ELEMENTS -->
     <div class="processing-hidden">
-        <!-- Using muted initially, we control audio routing via Web Audio API so it doesn't play out loud -->
         <video id="source-video" playsinline webkit-playsinline crossorigin="anonymous" muted></video>
         <canvas id="render-canvas"></canvas>
     </div>
@@ -308,23 +347,61 @@
             globalRatio: document.getElementById('global-ratio'),
             globalRes: document.getElementById('global-res'),
             globalFps: document.getElementById('global-fps'),
-            globalAutoDownload: document.getElementById('global-autodownload')
+            globalAutoDownload: document.getElementById('global-autodownload'),
+            trimStart: document.getElementById('trim-start'),
+            trimEnd: document.getElementById('trim-end'),
+            procStartPart: document.getElementById('process-start-part'),
+            procEndPart: document.getElementById('process-end-part')
         };
 
         const engine = {
             video: document.getElementById('source-video'),
             canvas: document.getElementById('render-canvas'),
-            ctx: document.getElementById('render-canvas').getContext('2d', { alpha: false }),
+            ctx: document.getElementById('render-canvas').getContext('2d', { alpha: false, willReadFrequently: true }),
+        };
+
+        // Error Handling Fix (Prevents false "Error Loading Video" alerts)
+        engine.video.onerror = (e) => {
+            const err = engine.video.error;
+            if (!err || err.code === 1) return; // 1 = ABORTED (happens normally on source change)
+            
+            if (err.code === 3) {
+                // Code 3 = DECODE ERROR (Device ran out of memory or decoder crashed)
+                console.error("Decoder crashed:", err);
+                alert("Mobile Decoder Overload: Please lower the FPS or Resolution in settings.");
+                cancelProcessing();
+                return;
+            }
+            console.error("Video Error:", err);
+            // Only alert if it fails during the initial load and isn't processing
+            if (appState.file && !appState.isProcessing) {
+                alert("Error loading video format. It might be unsupported.");
+            }
         };
 
         // ------------------------------------------
-        // State & IndexedDB (Storage) Setup
+        // State & DB Setup
         // ------------------------------------------
         let appState = {
-            file: null, duration: 0, clipLength: 59, totalParts: 0, clips: [],
-            currentClipIndex: 0, isProcessing: false, mediaRecorder: null, recordedChunks: [],
-            animationFrameId: null, stream: null,
-            audioCtx: null, audioSource: null, audioDest: null,
+            file: null, 
+            fullDuration: 0,
+            effStart: 0, 
+            effEnd: 0,
+            effDuration: 0,
+            clipLength: 59, 
+            totalParts: 0, 
+            clips: [],
+            currentClipIndex: 0, 
+            endClipIndex: 0, // for range processing
+            isProcessing: false, 
+            mediaRecorder: null, 
+            recordedChunks: [],
+            animationFrameId: null, 
+            stream: null,
+            audioCtx: null, 
+            audioSource: null, 
+            audioDest: null,
+            dummyGain: null,
             db: null 
         };
 
@@ -333,14 +410,9 @@
                 const request = indexedDB.open("ClipForgeDB", 1);
                 request.onupgradeneeded = (e) => {
                     const db = e.target.result;
-                    if(!db.objectStoreNames.contains('clips')) {
-                        db.createObjectStore('clips');
-                    }
+                    if(!db.objectStoreNames.contains('clips')) db.createObjectStore('clips');
                 };
-                request.onsuccess = (e) => {
-                    appState.db = e.target.result;
-                    resolve();
-                };
+                request.onsuccess = (e) => { appState.db = e.target.result; resolve(); };
                 request.onerror = (e) => reject(e);
             });
         }
@@ -369,15 +441,12 @@
                     a.click();
                     document.body.removeChild(a);
                     setTimeout(() => URL.revokeObjectURL(url), 5000);
-                } else {
-                    alert("Error: Clip not found in temporary storage.");
-                }
+                } else alert("Error: Clip not found in DB.");
             };
         }
 
         initDB();
 
-        // Load & Save Settings
         function loadSettings() {
             const saved = JSON.parse(localStorage.getItem('clipforge_settings')) || {};
             if(saved.ratio) uiInputs.globalRatio.value = saved.ratio;
@@ -419,38 +488,73 @@
             screens[screenName].classList.add('animate-fade-in');
         }
 
+        function formatTimeDisplay(sec) {
+            const h = Math.floor(sec / 3600);
+            const m = Math.floor((sec % 3600) / 60);
+            const s = Math.floor(sec % 60);
+            return h > 0 ? `${h}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}` : `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+        }
+
+        function parseTimeInput(val) {
+            if(!val) return null;
+            if(val.includes(':')) {
+                const parts = val.split(':').reverse();
+                let sec = 0;
+                if(parts[0]) sec += parseFloat(parts[0]);
+                if(parts[1]) sec += parseFloat(parts[1]) * 60;
+                if(parts[2]) sec += parseFloat(parts[2]) * 3600;
+                return sec;
+            }
+            return parseFloat(val);
+        }
+
         // ------------------------------------------
-        // PHASE 1: Import & Setup (FIXED FILE INPUT)
+        // PHASE 1: Import & Trim Setup
         // ------------------------------------------
         uiInputs.video.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (!file) return;
 
-            // Free previous object URL to prevent memory leaks with large files
-            if(engine.video.src) {
-                URL.revokeObjectURL(engine.video.src);
-            }
-
+            if(engine.video.src) URL.revokeObjectURL(engine.video.src);
             clearSessionDB(); 
             document.getElementById('gallery-list').innerHTML = '';
             document.getElementById('gallery-container').classList.add('hidden');
 
             appState.file = file;
             const url = URL.createObjectURL(file);
-            
             engine.video.src = url;
             
-            // For large files, it might take a moment to read metadata.
             engine.video.onloadedmetadata = () => {
-                appState.duration = engine.video.duration;
-                calculateParts();
+                appState.fullDuration = engine.video.duration;
+                appState.effStart = 0;
+                appState.effEnd = appState.fullDuration;
+                document.getElementById('ui-video-full-duration').textContent = `Total: ${formatTimeDisplay(appState.fullDuration)}`;
+                
+                uiInputs.trimStart.value = "";
+                uiInputs.trimEnd.value = "";
+                
+                applyTrim();
                 showScreen('editor');
             };
-            
-            engine.video.onerror = () => {
-                alert("Error loading video. It might be corrupted or in an unsupported format.");
-            }
         });
+
+        function applyTrim() {
+            let start = parseTimeInput(uiInputs.trimStart.value) || 0;
+            let end = parseTimeInput(uiInputs.trimEnd.value) || appState.fullDuration;
+            
+            if(start >= end) {
+                alert("Start time must be less than End time.");
+                start = 0; end = appState.fullDuration;
+            }
+            if(start < 0) start = 0;
+            if(end > appState.fullDuration) end = appState.fullDuration;
+
+            appState.effStart = start;
+            appState.effEnd = end;
+            appState.effDuration = end - start;
+            
+            calculateParts();
+        }
 
         uiInputs.duration.addEventListener('input', calculateParts);
 
@@ -461,16 +565,22 @@
                 uiInputs.duration.value = 59;
             }
             appState.clipLength = userLength;
-            appState.totalParts = Math.ceil(appState.duration / userLength);
+            appState.totalParts = Math.ceil(appState.effDuration / userLength);
             
             document.getElementById('ui-total-parts').textContent = appState.totalParts;
             document.getElementById('ui-final-parts').textContent = appState.totalParts;
             
+            uiInputs.procStartPart.value = 1;
+            uiInputs.procStartPart.max = appState.totalParts;
+            uiInputs.procEndPart.value = appState.totalParts;
+            uiInputs.procEndPart.max = appState.totalParts;
+            
             appState.clips = [];
             for (let i = 0; i < appState.totalParts; i++) {
-                let start = i * userLength;
-                let end = Math.min(start + userLength, appState.duration);
-                appState.clips.push({ start, end, partNum: i + 1 });
+                // Calculation respects the trimmed boundaries
+                let clipStart = appState.effStart + (i * userLength);
+                let clipEnd = Math.min(clipStart + userLength, appState.effEnd);
+                appState.clips.push({ start: clipStart, end: clipEnd, partNum: i + 1 });
             }
             buildStatusGrid();
         }
@@ -496,6 +606,16 @@
         // PHASE 2: Core Render Engine
         // ------------------------------------------
         async function startProcessingEngine() {
+            let sPart = parseInt(uiInputs.procStartPart.value);
+            let ePart = parseInt(uiInputs.procEndPart.value);
+            
+            if(isNaN(sPart) || sPart < 1) sPart = 1;
+            if(isNaN(ePart) || ePart > appState.totalParts) ePart = appState.totalParts;
+            if(sPart > ePart) { alert("Invalid processing range! Start Part must be less than or equal to End Part."); return; }
+
+            appState.currentClipIndex = sPart - 1; // 0 based array index
+            appState.endClipIndex = ePart - 1;
+
             const ratio = uiInputs.globalRatio.value;
             const res = parseInt(uiInputs.globalRes.value);
             
@@ -507,26 +627,35 @@
                 engine.canvas.height = res === 1080 ? 1080 : 720;
             }
 
+            // Audio Routing and Hardware Sleep Prevention
             if (!appState.audioCtx) {
                 const AudioContext = window.AudioContext || window.webkitAudioContext;
                 appState.audioCtx = new AudioContext();
                 appState.audioSource = appState.audioCtx.createMediaElementSource(engine.video);
                 appState.audioDest = appState.audioCtx.createMediaStreamDestination();
                 appState.audioSource.connect(appState.audioDest);
+
+                // OS Keep-Awake Trick: Send 0.001 volume to speaker so the OS doesn't kill the decoder!
+                appState.dummyGain = appState.audioCtx.createGain();
+                appState.dummyGain.gain.value = 0.001; 
+                appState.audioSource.connect(appState.dummyGain);
+                appState.dummyGain.connect(appState.audioCtx.destination);
             }
             if (appState.audioCtx.state === 'suspended') {
                 appState.audioCtx.resume();
             }
 
-            appState.currentClipIndex = 0;
             showScreen('process');
             processNextClip();
         }
 
         async function processNextClip() {
-            if (appState.currentClipIndex >= appState.clips.length) {
-                alert("🎉 All parts completed successfully!");
-                resetApp();
+            // Memory Cleanup before starting next part (Maintains FPS and stops crashes)
+            cleanMemory();
+
+            // SUCCESS CONDITION - Back to Editor!
+            if (appState.currentClipIndex > appState.endClipIndex) {
+                finishProcessing();
                 return;
             }
 
@@ -549,6 +678,7 @@
             engine.video.currentTime = currentClip.start;
             engine.video.muted = false; 
 
+            // Wait for seek to avoid reading empty frames
             await new Promise((resolve) => { engine.video.onseeked = resolve; });
 
             const fps = parseInt(uiInputs.globalFps.value) || 60;
@@ -575,7 +705,7 @@
                 if (e.data.size > 0) appState.recordedChunks.push(e.data);
             };
 
-            // STOP LOGIC & AUTO DOWNLOAD + AUTO NEXT ENGINE
+            // Process Completion Logic
             appState.mediaRecorder.onstop = () => {
                 if(!appState.isProcessing) return; 
                 
@@ -595,7 +725,6 @@
                 
                 const url = URL.createObjectURL(blob);
 
-                // Setup Download Logic
                 btnDownload.onclick = () => {
                     const a = document.createElement('a');
                     a.href = url;
@@ -609,7 +738,6 @@
                     btnDownload.classList.add('border', 'border-emerald-500', 'text-emerald-500', 'shadow-none');
                 };
 
-                // Setup Next Logic
                 const btnNext = document.getElementById('btn-next');
                 btnNext.onclick = () => {
                     appState.currentClipIndex++;
@@ -617,23 +745,35 @@
                     processNextClip();
                 };
 
-                // FULL AUTOMATION ENGINE
                 const autoDownloadSetting = uiInputs.globalAutoDownload.value;
                 if (autoDownloadSetting === 'auto') {
                     document.getElementById('process-subtitle').textContent = "Auto-saving & moving to next...";
                     btnDownload.click();
-                    
                     setTimeout(() => {
-                        if (appState.isProcessing) {
-                            btnNext.click();
-                        }
+                        if (appState.isProcessing) { btnNext.click(); }
                     }, 1500);
                 }
             };
 
-            engine.video.play();
+            engine.video.play().catch(e => console.error("Play prevented:", e));
             appState.mediaRecorder.start();
             drawFrame(currentClip);
+        }
+
+        // Extremely Strict Memory Cleanup (Crucial for 90 FPS continuous rendering)
+        function cleanMemory() {
+            if (appState.animationFrameId) {
+                cancelAnimationFrame(appState.animationFrameId);
+                appState.animationFrameId = null;
+            }
+            if (appState.stream) {
+                appState.stream.getTracks().forEach(track => {
+                    if(track.kind === 'video') track.stop();
+                });
+            }
+            appState.recordedChunks = [];
+            // Flush Canvas GPU memory
+            engine.ctx.clearRect(0, 0, engine.canvas.width, engine.canvas.height);
         }
 
         function addGalleryCard(partNum, filename) {
@@ -712,7 +852,6 @@
                 ctx.drawImage(engine.video, dx, dy, dW, dH);
             }
 
-            // TEXT ANIMATION ENGINE
             ctx.save();
             const animDuration = 1.0; 
             let alpha = 1;
@@ -791,22 +930,29 @@
             return ''; 
         }
 
+        function finishProcessing() {
+            appState.isProcessing = false;
+            cleanMemory();
+            engine.video.pause();
+            showScreen('editor');
+            alert("🎉 Selected Batch Processed Successfully!");
+        }
+
         function cancelProcessing() {
             appState.isProcessing = false;
+            cleanMemory();
             engine.video.pause();
             if (appState.mediaRecorder && appState.mediaRecorder.state !== 'inactive') {
                 appState.mediaRecorder.stop();
             }
-            if (appState.animationFrameId) {
-                cancelAnimationFrame(appState.animationFrameId);
-            }
-            updateStatusBadge(appState.clips[appState.currentClipIndex].partNum, 'pending');
+            updateStatusBadge(appState.clips[appState.currentClipIndex]?.partNum, 'pending');
             alert("Processing Aborted.");
             showScreen('editor');
         }
 
-        function resetApp() {
+        function fullResetApp() {
             cancelProcessing();
+            if(engine.video.src) URL.revokeObjectURL(engine.video.src);
             appState.file = null;
             engine.video.src = "";
             uiInputs.video.value = "";
